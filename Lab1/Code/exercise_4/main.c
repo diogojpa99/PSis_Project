@@ -4,12 +4,15 @@
 #include <string.h>
 
 /* include the correct .h file */
-
+#include <dlfcn.h>
 
 int main(){
 	int a;
 	char line[100];
 	char library_name[100];
+
+
+	void *handle;
 
 	printf("What version of the functions you whant to use?\n");
 	printf("\t1 - Normal    (lib1)\n");
@@ -29,17 +32,19 @@ int main(){
 		}
 	}
 	/* load library from name library_name */
-
+	handle = dlopen (library_name, RTLD_LAZY);
 
 	/* declare pointers to functions */
+	void (*ptr1)(), (*ptr2)();
 
 	/*load func_1 from loaded library */
-
+	ptr1= dlsym(handle, "func_1");
 	/*load func_2 from loaded library */
-
+	ptr2= dlsym(handle, "func_2");
 	/* call func_1 from whichever library was loaded */
-
+	ptr1();
 	/* call func_2 from whichever library was loaded */
+	ptr2();
 
 	exit(0);
 }
