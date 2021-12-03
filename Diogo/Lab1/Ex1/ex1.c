@@ -11,8 +11,8 @@ int main(int argc, char *argv[]){
     for (i=0; i<argc; i++)
         counter += strlen(argv[i]);
 
-    //Alocar memória para string
-    if((result_str = (char*) calloc(counter, sizeof(char))) == NULL){   
+    //Alocar memória para string (Atenção ao +1 - Devido ao '\0' -> String)
+    if((result_str = (char*) calloc(counter + 1, sizeof(char))) == NULL){   
         printf("Memory is full. Couldn't register request.\n");
 	    return -1;
     } 
