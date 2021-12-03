@@ -33,7 +33,7 @@ int main(){
             exit(-1);
         }
     }
-    printf("FIFO write file opened successfully");
+    printf("FIFO write file opened successfully.\n");
 
     int n, value, (*fcn)();
     char str[BUFFER_SIZE];
@@ -42,12 +42,12 @@ int main(){
     
 
     while(1){
-        n = read(fd_read, &message, sizeof(message_type*));
+        n = read(fd_read, &message, sizeof(message_type));
         if(n<=0){
             printf("Read error.\n");
             exit(-1);
         }
-        printf("Received:\n\tf_name: %s\n\tfunct_type=%d\n\targ=%d\n", message.f_name, message.funct_type, message.arg);
+        //printf("Received:\n\tf_name: %s\n\tfunct_type=%d\n\targ=%d\n", message.f_name, message.funct_type, message.arg);
 
         if(strcmp(message.f_name, "f1") && strcmp(message.f_name, "f2") && strcmp(message.f_name, "f3"))
             continue;
@@ -55,7 +55,6 @@ int main(){
         handle = dlopen("./funcs-ex5.so", RTLD_LAZY);
         fcn = dlsym(handle, message.f_name);
         if(message.funct_type==1){
-            printf("funct_type=1 - int argument = %d.\n", message.arg);
             value = (*fcn)(message.arg);
         }
         else

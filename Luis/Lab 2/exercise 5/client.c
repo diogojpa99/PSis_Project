@@ -48,8 +48,8 @@ int main(){
 		}
 		else
 			message.funct_type=0; // type=0 indicates the function takes no arguments.		
-		write(fd_write, &message, sizeof(message_type*));
-		printf("Sent:\n\tf_name: %s\n\tfunct_type=%d\n\targ=%d\n", message.f_name, message.funct_type, message.arg);
+		write(fd_write, &message, sizeof(message_type));
+		//printf("Sent:\n\tf_name: %s\n\tfunct_type=%d\n\targ=%d\n", message.f_name, message.funct_type, message.arg);
 		n = read(fd_read, &value, sizeof(&value));
 		if(n<=0){
 			printf("Read error.\n");
