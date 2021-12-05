@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <dlfcn.h>
 
+#include "data_struct.h"
+
 #define BUFFER_SIZE 100
 
 
@@ -16,9 +18,9 @@ int main(){
 	char str[BUFFER_SIZE], lib_name[BUFFER_SIZE];
     void *lib_handle;
     char *error;
-   
+    message_type message;
 
-    strcpy(lib_name, "./funcs.so");
+    strcpy(lib_name, "./funcs-ex5.so");
 
     //Opening or creating a FIFO/PIPE
 	while((fd_r = open("/tmp/fifo_teste", O_RDONLY)) == -1){
@@ -45,17 +47,17 @@ int main(){
 
         //Reading from the opened PIPE
         //n é o nº de Bites lidos. Se n = -1 significa que o cliente saiu 
-		if ((n = read(fd_r, str, BUFFER_SIZE)) <= 0){ 
+		if ((n = read(fd_r, &message, sizeof(message_type))) <= 0){ 
 			perror("read ");
 			exit(-1);
 		}
-		printf("String read from the FIFO_read: %s   (%d bytes)\n", str, n);
+		printf("String read from the FIFO_read: %s   (%d bytes)\n", message.f_name, n);
 
-        //Se o utilizador não escrever o que queremos então passamos para o próxima "iteração"
-        if((strcmp(str , "f1") != 0) && (strcmp(str , "f2") != 0)){
-            printf("Client can only write f1 or f2\n");
-            continue; 
-        }
+		//Se o utilizador não escrever o que queremos então passamos para o próxima "iteração"
+		if((strcmp( message.f_name , "f1") != 0) && (strcmp( message.f_name , "f2") != 0) && (strcmp( message.f_name, "f3") != 0)){
+			printf("Client can only write f1 or f2 or f3\n");
+			continue; 
+		}
 
         /* load library from name library_name */
         if (!(lib_handle = dlopen (lib_name, RTLD_LAZY))){
@@ -64,7 +66,7 @@ int main(){
         }
 
         /*load the selected function from loaded library */
-        f = dlsym(lib_handle, str);
+        f = dlsym(lib_handle, message.f_name);
         
         if ((error = dlerror()) != NULL) {
             fprintf(stderr, "%s\n", error);
@@ -72,7 +74,12 @@ int main(){
         }
 
         /* call f from whichever library was loaded */
-        f_return = (*f)();
+        if ( strcmp (message.f_name, "f3") ==0 ){
+            f_return = (*f)(message.arg);
+        } else{
+            f_return = (*f)();
+        }
+
         write (fd_w, &f_return, sizeof(&f_return));
 
         dlclose(lib_handle);
