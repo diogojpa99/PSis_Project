@@ -7,7 +7,7 @@ typedef enum direction_t {UP, DOWN, LEFT, RIGHT} direction_t;
 
 typedef struct message{
     int msg_type;
-    int c; 
+    char c; 
     direction_t direction;   
 } message;
 

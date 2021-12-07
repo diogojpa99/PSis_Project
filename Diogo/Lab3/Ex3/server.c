@@ -13,7 +13,7 @@ direction_t random_direction(){
 }
 
 typedef struct client{
-    int c;
+    char c;
     int x;
     int y;
     struct client *next;
@@ -21,9 +21,9 @@ typedef struct client{
 
 
 
-client *New_client(client *head, int ch, int x, int y);
+client *New_client(client *head, char ch, int x, int y);
 
-client *Search_list(client *head, int ch);
+client *Search_list(client *head, char ch);
 
 
 void new_position(int* x, int *y, direction_t direction){
@@ -63,7 +63,6 @@ int main()
 	// TODO_3
     // create and open the FIFO for reading
     int fd;
-
 	while((fd = open(FIFO, O_RDONLY)) == -1){
 	  if(mkfifo(FIFO, 0666)!=0){
 			printf("Problem creating the FIFO\n");
@@ -92,8 +91,6 @@ int main()
     int pos_x;
     int pos_y;
 
-
-
     direction_t  direction;
 
     while (1)
@@ -112,73 +109,78 @@ int main()
             wmove(my_win, pos_x, pos_y);
             waddch(my_win,ch| A_BOLD);
 
-            listHead = New_client(listHead, ch, pos_x, pos_y);
+            if ( (listHead = New_client(listHead, ch, pos_x, pos_y)) == NULL) 
+                exit(2);
 
         } else if ( m.msg_type == 1){ //movement
             // TODO_11
             // process the movement message
 
-            ptr = Search_list(listHead, m.c);
-
-            if(ptr==NULL) exit(2);
-
+            if ( (ptr = Search_list(listHead, m.c)) == NULL) exit(0);
 
             /*deletes old place */
             wmove(my_win, ptr->x, ptr->y);
             waddch(my_win,' ');
-            
+             
+
             /* draw mark on new position */
             new_position(&ptr->x, &ptr->y, m.direction);
             wmove(my_win, ptr->x, ptr->y);
-            waddch(my_win,ch| A_BOLD);
+            waddch(my_win, ptr->c| A_BOLD);
 
         }	
 
         wrefresh(my_win);
+
     }
+
   	endwin();			/* End curses mode		  */
 
 	return 0;
 }
 
-client *New_client(client *head, int ch, int x, int y){
+client *New_client(client *head, char ch, int x, int y){
 
     client *new = NULL, *ptr;
 
     if ((new = (client*) malloc(sizeof(client))) == NULL) 
         exit(1);
 
+    new->c = ch;
+    new->x = x;
+    new->y = y;
+
     if (head == NULL){
         return head = new;
     } else{
-        if ( (ptr = Search_list(head, ch)) == NULL ){
 
-            new->c = ch;
-            new->x = x;
-            new->y = y;
+        if (  (ptr = Search_list(head, ch)) == NULL ){
 
             //Inserção na cabeça
             new->next= head;
             head = new;
-            return new;
 
         } else{
+
             free(new);
             return ptr;
+
         }
     }
 
-    return new;
+    return head;
 }
 
 
-client *Search_list(client *head, int ch){
+client *Search_list(client *head, char ch){
 
     client *auxT = head;
       
     while ( auxT != NULL){
+
         if( auxT->c == ch)
             return auxT;   
+
         auxT = auxT-> next; 
     }
 

@@ -44,7 +44,7 @@ int main()
     //Definir a estrutura message
     message m;
 
-    m.c = (int) c;
+    m.c = c;
     m.msg_type = 0; //connection
 
     write(fd, &m, sizeof(message));

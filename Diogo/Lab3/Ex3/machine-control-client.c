@@ -38,9 +38,9 @@ int main()
 
     // TODO_6
 
-        message m;
+    message m;
 
-    m.c = (int) c;
+    m.c = c;
     m.msg_type = 0; //connection
 
     write(fd, &m, sizeof(message));
