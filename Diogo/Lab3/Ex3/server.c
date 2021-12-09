@@ -26,6 +26,8 @@ client *New_client(client *head, char ch, int x, int y);
 client *Search_list(client *head, char ch);
 
 
+
+
 void new_position(int* x, int *y, direction_t direction){
     switch (direction)
     {
@@ -53,6 +55,10 @@ void new_position(int* x, int *y, direction_t direction){
         break;
     }
 }
+
+
+
+
 
 int main()
 {	
@@ -138,6 +144,9 @@ int main()
 
 	return 0;
 }
+
+
+
 
 client *New_client(client *head, char ch, int x, int y){
 
