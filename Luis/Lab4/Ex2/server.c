@@ -1,5 +1,8 @@
 #include <ncurses.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 #include "remote-char.h"
+#include "sock_dg.h"
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -62,18 +65,24 @@ int main()
     
 	// TODO_3
     // create and open the FIFO for reading
-    int fd;
+    int sock_fd;
 
-	while((fd = open(FIFO, O_RDONLY)) == -1){
-	  if(mkfifo(FIFO, 0666)!=0){
-			printf("Problem creating the FIFO\n");
-			exit(-1);
-	  }else{
-		  printf("FIFO created\n");
-	  }
+	sock_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
+    if(sock_fd==-1){
+        perror("socket: ");
+        exit(-1);
+    }
+
+    struct sockaddr_un local_addr;
+	local_addr.sun_family = AF_UNIX;
+	strcpy(local_addr.sun_path, SOCK_ADDRESS);
+
+	unlink(SOCK_ADDRESS);
+	int err = bind(sock_fd, (struct sockaddr *)&local_addr, sizeof(local_addr));
+	if(err == -1) {
+		perror("bind");
+		exit(-1);
 	}
-	printf("FIFO just opened for reading\n");
-
 
     // ncurses initialization
 	initscr();		    	
@@ -100,8 +109,7 @@ int main()
     {
         // TODO_7
         // receive message from the clients
-        read(fd, &m, sizeof(message));
-
+        recv(sock_fd, &m, sizeof(message), 0);
 
 
         //TODO_8

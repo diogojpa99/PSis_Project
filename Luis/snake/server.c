@@ -6,6 +6,7 @@
 #include <fcntl.h>  
 #include <stdlib.h>
 #define WINDOW_SIZE 15
+#define SNAKE_SIZE 6
 
 
 direction_t random_direction(){
@@ -32,22 +33,22 @@ void new_position(int* x, int *y, direction_t direction){
     case UP:
         (*x) --;
         if(*x ==0)
-            *x = 2;
+            *x = WINDOW_SIZE-2;
         break;
     case DOWN:
         (*x) ++;
         if(*x ==WINDOW_SIZE-1)
-            *x = WINDOW_SIZE-3;
+            *x = 1;
         break;
     case LEFT:
         (*y) --;
         if(*y ==0)
-            *y = 2;
+            *y = WINDOW_SIZE-2;
         break;
     case RIGHT:
         (*y) ++;
         if(*y ==WINDOW_SIZE-1)
-            *y = WINDOW_SIZE-3;
+            *y = 1;
         break;
     default:
         break;
@@ -91,7 +92,7 @@ int main()
     int ch;
     int pos_x;
     int pos_y;
-
+    client snake[SNAKE_SIZE];
 
 
     direction_t  direction;
@@ -108,12 +109,19 @@ int main()
         // process connection messages
         if( m.msg_type == 0){ //Connection
             ch = m.c;
-            pos_x = pos_y = WINDOW_SIZE/2;
-            wmove(my_win, pos_x, pos_y);
-            waddch(my_win,ch| A_BOLD);
+            //pos_x = pos_y = WINDOW_SIZE/2;
 
             listHead = New_client(listHead, ch, pos_x, pos_y);
 
+            snake[0].c = 'O';
+            for(int i=0; i<SNAKE_SIZE; i++){
+                if(i!=0)
+                    snake[i].c='o';
+                snake[i].x=SNAKE_SIZE-i;
+                snake[i].y=2;
+                wmove(my_win, snake[i].x, snake[i].y);
+                waddch(my_win,snake[i].c| A_BOLD);
+            }
         } else if ( m.msg_type == 1){ //movement
             // TODO_11
             // process the movement message
@@ -121,14 +129,27 @@ int main()
             ptr = Search_list(listHead, m.c);
 
             if(ptr!=NULL){
-                /*deletes old place */
+                /*
                 wmove(my_win, ptr->x, ptr->y);
                 waddch(my_win,' ');
-            
-                /* draw mark on new position */
+                // draw mark on new position
                 new_position(&ptr->x, &ptr->y, m.direction);
                 wmove(my_win, ptr->x, ptr->y);
                 waddch(my_win,ptr->c| A_BOLD);
+                */
+                wmove(my_win, snake[SNAKE_SIZE-1].x, snake[SNAKE_SIZE-1].y);
+                waddch(my_win,' ');
+                for(int i=SNAKE_SIZE-1;i>0;i--){
+                    snake[i].x=snake[i-1].x;
+                    snake[i].y=snake[i-1].y;
+                    if(i!=SNAKE_SIZE-1){
+                        wmove(my_win, snake[i].x, snake[i].y);
+                        waddch(my_win,snake[i].c| A_BOLD);
+                    }
+                }
+                new_position(&snake[0].x, &snake[0].y, m.direction);
+                wmove(my_win, snake[0].x, snake[0].y);
+                waddch(my_win,snake[0].c| A_BOLD);
             }
         }	
 

@@ -26,7 +26,8 @@ int main(){
 
 		printf("write a string:");
 		fgets(str, 100, stdin);
-		write(fd, str, 100);
+		//write(fd, str, 100);
+		write(fd, "qwertyuiop", 10);
 
 		printf("write a number:");
 		fgets(str, 100, stdin);

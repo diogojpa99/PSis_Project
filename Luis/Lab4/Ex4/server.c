@@ -1,5 +1,8 @@
 #include <ncurses.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 #include "remote-char.h"
+#include "sock_dg.h"
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -58,22 +61,29 @@ int main()
 {	
     // Feito por nós
     message m;
-    client *listHead = NULL, *ptr =NULL;
+    client *listHead = NULL, *ptr =NULL, *aux;
     
 	// TODO_3
     // create and open the FIFO for reading
-    int fd;
+    int sock_fd;
 
-	while((fd = open(FIFO, O_RDONLY)) == -1){
-	  if(mkfifo(FIFO, 0666)!=0){
-			printf("Problem creating the FIFO\n");
-			exit(-1);
-	  }else{
-		  printf("FIFO created\n");
-	  }
+	sock_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
+    if(sock_fd==-1){
+        perror("socket: ");
+        exit(-1);
+    }
+
+    struct sockaddr_un local_addr, client_addr;
+    socklen_t client_addr_size = sizeof(struct sockaddr_un);
+	local_addr.sun_family = AF_UNIX;
+	strcpy(local_addr.sun_path, SOCK_ADDRESS);
+
+	unlink(SOCK_ADDRESS);
+	int err = bind(sock_fd, (struct sockaddr *)&local_addr, sizeof(local_addr));
+	if(err == -1) {
+		perror("bind");
+		exit(-1);
 	}
-	printf("FIFO just opened for reading\n");
-
 
     // ncurses initialization
 	initscr();		    	
@@ -91,8 +101,7 @@ int main()
     int ch;
     int pos_x;
     int pos_y;
-
-
+    char reply[10];
 
     direction_t  direction;
 
@@ -100,9 +109,7 @@ int main()
     {
         // TODO_7
         // receive message from the clients
-        read(fd, &m, sizeof(message));
-
-
+        recvfrom(sock_fd, &m, sizeof(message), 0, (struct sockaddr *) &client_addr, &client_addr_size);
 
         //TODO_8
         // process connection messages
@@ -127,6 +134,14 @@ int main()
             
                 /* draw mark on new position */
                 new_position(&ptr->x, &ptr->y, m.direction);
+                aux = listHead;
+                strcpy(reply, "all good");
+                while(aux!=NULL){
+                    if((aux->x == ptr->x) && (aux->y == ptr->y) && (aux != ptr))
+                        strcpy(reply, "HIT");
+                    aux = aux->next;
+                }
+                sendto(sock_fd, reply, 10, 0, (const struct sockaddr *) &client_addr, client_addr_size);
                 wmove(my_win, ptr->x, ptr->y);
                 waddch(my_win,ptr->c| A_BOLD);
             }
