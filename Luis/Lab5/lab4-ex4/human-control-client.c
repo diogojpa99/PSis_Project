@@ -9,7 +9,8 @@
 #include <fcntl.h>  
 #include <ctype.h> 
 #include <stdlib.h>
- 
+#include<netinet/in.h>
+#include<arpa/inet.h> 
 
 int main()
 {
@@ -18,23 +19,24 @@ int main()
 
     int fd;
 
-    fd = socket(AF_UNIX, SOCK_DGRAM, 0);
+    fd = socket(AF_INET, SOCK_DGRAM, 0);
     if(fd==-1){
         perror("socket: ");
         exit(-1);
     }
 
-    struct sockaddr_un server_addr, local_addr;
-	server_addr.sun_family = AF_UNIX;
-    strcpy(server_addr.sun_path, SOCK_ADDRESS);
-    local_addr.sun_family = AF_UNIX;
-	sprintf(local_addr.sun_path, "%s %d", SOCK_ADDRESS, getpid());
-
-    int err = bind(fd, (struct sockaddr *) &local_addr, sizeof(local_addr));
-    if(err==-1){
-        perror("bind");
-        exit(-1);
-    } 
+    struct sockaddr_in server_addr;
+	server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(SOCK_PORT);
+    char linha[100];
+    printf("What is the network address of the recipient? ");
+	do{
+        fgets(linha, 100, stdin);
+        linha[strlen(linha)-1] = '\0';	
+	    if( inet_pton(AF_INET, linha, &server_addr.sin_addr) < 1){
+	    	printf("Not a valid address. Try again. ");
+	    }
+    }while(inet_pton(AF_INET, linha, &server_addr.sin_addr) < 1);
 
     //TODO_5
     // read the character from the user
@@ -56,10 +58,10 @@ int main()
     m.c = (int) c;
     m.msg_type = 0; //connection
     int nbytes;
-
-    nbytes = sendto(fd, &m, sizeof(message), 0, (const struct sockaddr *) &server_addr, sizeof(server_addr));
-    printf("%d bytes sent %c\n", nbytes, m.c);
-    
+    do{
+        nbytes = sendto(fd, &m, sizeof(message), 0, (const struct sockaddr *) &server_addr, sizeof(server_addr));
+        printf("%d bytes sent %c\n", nbytes, m.c);
+    }while(nbytes <= 0);
     /*********************************/
 
 
@@ -121,6 +123,7 @@ int main()
         //receive reply from server
         char recv_msg[10];
         nbytes = recv(fd, recv_msg, 10, 0);
+        mvprintw(2,0,"%s", recv_msg);
         if(strcmp(recv_msg, "HIT") == 0)
             flash();
 

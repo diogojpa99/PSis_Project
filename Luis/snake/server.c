@@ -5,8 +5,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>  
 #include <stdlib.h>
+#include <time.h>
 #define WINDOW_SIZE 15
-#define SNAKE_SIZE 6
+#define SNAKE_SIZE 10
 
 
 direction_t random_direction(){
@@ -24,8 +25,13 @@ typedef struct client{
 
 client *New_client(client *head, int ch, int x, int y);
 
+client *remove_point(client *listhead, int x, int y);
+
 client *Search_list(client *head, int ch);
 
+void newPoint(int *point);
+
+void increase_length(client snake[]);
 
 void new_position(int* x, int *y, direction_t direction){
     switch (direction)
@@ -92,23 +98,46 @@ int main()
     int ch;
     int pos_x;
     int pos_y;
+    int point[2];
+    clock_t now, then;
     client snake[SNAKE_SIZE];
-
+    int snake_length=3;
+    int n=0;
 
     direction_t  direction;
 
+    //now = then = clock();
+
     while (1)
     {
+        //now = clock();
+
+        if(n==10){
+            n=0;
+            newPoint(point);
+            for(int i=0; i<snake_length; i++){
+                if(snake[i].x==point[0] && snake[i].y==point[1]){
+                    n=5;
+                }
+            }
+            if(n==0){
+                wmove(my_win, point[0], point[1]);
+                waddch(my_win,'.'| A_BOLD);
+                listHead = New_client(listHead, '.', point[0], point[1]);
+            }
+        }
+
         // TODO_7
         // receive message from the clients
         read(fd, &m, sizeof(message));
+        n++;
 
 
 
         //TODO_8
         // process connection messages
         if( m.msg_type == 0){ //Connection
-            ch = m.c;
+            ch = 'O';
             //pos_x = pos_y = WINDOW_SIZE/2;
 
             listHead = New_client(listHead, ch, pos_x, pos_y);
@@ -116,11 +145,13 @@ int main()
             snake[0].c = 'O';
             for(int i=0; i<SNAKE_SIZE; i++){
                 if(i!=0)
-                    snake[i].c='o';
+                    snake[i].c = 'o';
                 snake[i].x=SNAKE_SIZE-i;
                 snake[i].y=2;
-                wmove(my_win, snake[i].x, snake[i].y);
-                waddch(my_win,snake[i].c| A_BOLD);
+                if(i<snake_length){
+                    wmove(my_win, snake[i].x, snake[i].y);
+                    waddch(my_win,snake[i].c| A_BOLD);
+                }
             }
         } else if ( m.msg_type == 1){ //movement
             // TODO_11
@@ -137,19 +168,32 @@ int main()
                 wmove(my_win, ptr->x, ptr->y);
                 waddch(my_win,ptr->c| A_BOLD);
                 */
-                wmove(my_win, snake[SNAKE_SIZE-1].x, snake[SNAKE_SIZE-1].y);
+                wmove(my_win, snake[snake_length-1].x, snake[snake_length-1].y);
                 waddch(my_win,' ');
                 for(int i=SNAKE_SIZE-1;i>0;i--){
                     snake[i].x=snake[i-1].x;
                     snake[i].y=snake[i-1].y;
-                    if(i!=SNAKE_SIZE-1){
-                        wmove(my_win, snake[i].x, snake[i].y);
-                        waddch(my_win,snake[i].c| A_BOLD);
-                    }
+                    /*
+                    wmove(my_win, snake[i].x, snake[i].y);
+                    waddch(my_win,snake[i].c| A_BOLD);
+                    */
                 }
                 new_position(&snake[0].x, &snake[0].y, m.direction);
-                wmove(my_win, snake[0].x, snake[0].y);
-                waddch(my_win,snake[0].c| A_BOLD);
+                ptr = listHead;
+                while(ptr!=NULL){
+                    if(ptr->x==snake[0].x && ptr->y==snake[0].y){
+                        if(ptr->c=='.')
+                            if(snake_length<SNAKE_SIZE){
+                                snake_length++;
+                                listHead = remove_point(listHead, snake[0].x, snake[0].y);
+                            }
+                    }
+                    ptr=ptr->next;
+                }
+                for(int i=0;i<snake_length;i++){
+                    wmove(my_win, snake[i].x, snake[i].y);
+                    waddch(my_win,snake[i].c| A_BOLD);
+                }
             }
         }	
 
@@ -174,18 +218,39 @@ client *New_client(client *head, int ch, int x, int y){
     if (head == NULL){
         return head = new;
     } else{
-        if ( (ptr = Search_list(head, ch)) == NULL ){
             //Inserção na cabeça
             new->next= head;
             head = new;
-            return new;
-        } else{
-            free(new);
-            return ptr;
-        }
+            return new;   
     }
 
     return new;
+}
+
+client *remove_point(client *listhead, int x, int y){
+    client *ptr, *ptr2;
+    if(listhead==NULL)
+        return listhead;
+
+    ptr = listhead->next;
+    ptr2 = listhead;
+    if(listhead->x==x && listhead->y==y && listhead->c=='.'){
+        ptr = listhead->next;
+        free(listhead);
+        return ptr;
+    }
+
+    while(ptr!=NULL){
+        if(ptr->x==x && ptr->y==y && ptr->c=='.'){
+            ptr2->next = ptr->next;
+            free(ptr);
+            return(ptr);
+        }
+        ptr2 = ptr;
+        ptr = ptr->next;
+    }
+
+    return listhead;
 }
 
 
@@ -200,4 +265,20 @@ client *Search_list(client *head, int ch){
     }
 
     return NULL;
+}
+
+void newPoint(int *point){
+    point[0] = random() % (WINDOW_SIZE-2) + 1;
+    point[1] = random() % (WINDOW_SIZE-2) + 1;
+}
+
+void increase_length(client snake[]){
+    //if(snake[SNAKE_SIZE-1].c=='o')
+      //  return;
+    for(int i=0; i++; i<SNAKE_SIZE){
+        if(snake[i].c!='o'){
+            snake[i].c='o';
+            break;
+        }
+    }
 }

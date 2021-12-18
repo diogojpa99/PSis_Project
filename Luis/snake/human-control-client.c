@@ -2,11 +2,23 @@
 #include "remote-char.h"
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/select.h>
 #include <sys/stat.h>
 #include <fcntl.h>  
 #include <ctype.h> 
 #include <stdlib.h>
- 
+#include <time.h>
+
+void delay(int milliseconds)
+{
+    long pause;
+    clock_t now,then;
+
+    pause = milliseconds*(CLOCKS_PER_SEC/1000);
+    now = then = clock();
+    while( (now-then) < pause )
+        now = clock();
+}
 
 int main()
 {
@@ -32,11 +44,18 @@ int main()
 
     char c;
 
-    printf("Insert the character you want to control: ");
+    initscr();			/* Start curses mode 		*/
+	cbreak();				/* Line buffering disabled	*/
+	keypad(stdscr, TRUE);		/* We get F1, F2 etc..		*/
+	noecho();			/* Don't echo() while we do getch */
+
+    printf("Press ENTER to start");
     if ( (c = fgetc(stdin)) == EOF ){
         printf("Error reading character\n");
         exit(-1);
     }
+
+    c = 'O';
 
     // TODO_6
     // send connection message
@@ -49,26 +68,38 @@ int main()
 
     write(fd, &m, sizeof(message));
 
+    // send the default first command (DOWN)
+    m.c = c;
+    m.msg_type = 1;
+    m.direction = DOWN;
+    write(fd, &m, sizeof(message));
+
     /*********************************/
-
-
-	initscr();			/* Start curses mode 		*/
-	cbreak();				/* Line buffering disabled	*/
-	keypad(stdscr, TRUE);		/* We get F1, F2 etc..		*/
-	noecho();			/* Don't echo() while we do getch */
-
     
     int ch;
     int n = 0;
-    direction_t direction;
+    int kbfd = 0;
+    int sret;
 
+    fd_set readfds;
+    struct timeval timeout;
+
+    timeout.tv_sec=0;
+    timeout.tv_usec=500000;
+
+    direction_t direction;
 
     do
     {   
 
         mvprintw(1,0,"You can move the character");
 
-    	ch = getch();		
+        FD_ZERO(&readfds);
+        FD_SET(kbfd, &readfds);
+        sret = select(2, &readfds, NULL, NULL, &timeout);
+        if(sret!=0){
+    	    ch = getch();
+        }		
         n++;
         switch (ch)
         {
@@ -107,6 +138,7 @@ int main()
 
         /********************************/
 
+        delay(500);
 
     }while(ch != 27);
     
