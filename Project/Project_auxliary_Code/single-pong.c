@@ -25,14 +25,18 @@ void new_paddle (paddle_position_t * paddle, int legth){
 }
 
 void draw_paddle(WINDOW *win, paddle_position_t * paddle, int delete){
+    
     int ch;
+    int start_x = paddle->x - paddle->length;
+    int end_x = paddle->x + paddle->length;
+
+
     if(delete){
-        ch = '_';
+        ch = '=';
     }else{
         ch = ' ';
     }
-    int start_x = paddle->x - paddle->length;
-    int end_x = paddle->x + paddle->length;
+
     for (int x = start_x; x <= end_x; x++){
         wmove(win, paddle->y, x);
         waddch(win,ch);
@@ -71,20 +75,35 @@ void place_ball_random(ball_position_t * ball){
     ball->up_hor_down = rand() % 3 -1; //  -1 up, 1 - down
     ball->left_ver_right = rand() % 3 -1 ; // 0 vertical, -1 left, 1 right
 }
-void moove_ball(ball_position_t * ball){
+
+
+// Acrescentou-se paddle como argumrnto
+// Intercepção da bola com paddle feita na função moove_ball
+void moove_ball(ball_position_t * ball, paddle_position_t paddle){
     
     int next_x = ball->x + ball->left_ver_right;
+    int next_y = ball->y + ball->up_hor_down;
+
+    int paddle_start_x = paddle.x - paddle.length;
+    int paddle_end_x = paddle.x + paddle.length;
+
+    if( next_y == paddle.y && next_x >= paddle_start_x && next_x <= paddle_end_x ){
+        ball->up_hor_down *= -1;
+        ball->left_ver_right = rand() % 3 -1;
+        mvwprintw(message_win, 2,1,"bottom top win");
+        wrefresh(message_win);
+        return;
+    }
+
     if( next_x == 0 || next_x == WINDOW_SIZE-1){
         ball->up_hor_down = rand() % 3 -1 ;
         ball->left_ver_right *= -1;
         mvwprintw(message_win, 2,1,"left right win");
         wrefresh(message_win);
-     }else{
+    }else{
         ball->x = next_x;
     }
-
     
-    int next_y = ball->y + ball->up_hor_down;
     if( next_y == 0 || next_y == WINDOW_SIZE-1){
         ball->up_hor_down *= -1;
         ball->left_ver_right = rand() % 3 -1;
@@ -93,10 +112,14 @@ void moove_ball(ball_position_t * ball){
     }else{
         ball -> y = next_y;
     }
+
+    return;
 }
 
 void draw_ball(WINDOW *win, ball_position_t * ball, int draw){
+
     int ch;
+
     if(draw){
         ch = ball->c;
     }else{
@@ -105,6 +128,8 @@ void draw_ball(WINDOW *win, ball_position_t * ball, int draw){
     wmove(win, ball->y, ball->x);
     waddch(win,ch);
     wrefresh(win);
+
+    return;
 }
 
 paddle_position_t paddle;
@@ -142,7 +167,7 @@ int main(){
             draw_paddle(my_win, &paddle, true);
 
             draw_ball(my_win, &ball, false);
-            moove_ball(&ball);
+            moove_ball(&ball, paddle); // adicionou-se paddle como argumento
             draw_ball(my_win, &ball, true);
         }
         mvwprintw(message_win, 1,1,"%c key pressed", key);
