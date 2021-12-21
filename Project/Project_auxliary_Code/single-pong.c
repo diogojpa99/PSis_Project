@@ -66,6 +66,8 @@ void moove_paddle (paddle_position_t * paddle, int direction){
         if (paddle->x + paddle->length != WINDOW_SIZE-2){
             paddle->x ++;
     }
+
+    return;
 }
 
 void place_ball_random(ball_position_t * ball){
@@ -87,9 +89,20 @@ void moove_ball(ball_position_t * ball, paddle_position_t paddle){
     int paddle_start_x = paddle.x - paddle.length;
     int paddle_end_x = paddle.x + paddle.length;
 
-    if( next_y == paddle.y && next_x >= paddle_start_x && next_x <= paddle_end_x ){
+
+    //New
+    if( next_y == paddle.y && next_x > paddle_start_x && next_x < paddle_end_x ){
         ball->up_hor_down *= -1;
         ball->left_ver_right = rand() % 3 -1;
+        mvwprintw(message_win, 2,1,"bottom top win");
+        wrefresh(message_win);
+        return;
+    }
+
+    // CHECK
+    if( next_y == paddle.y && ( next_x == paddle_start_x || next_x == paddle_end_x ) ){
+        ball->up_hor_down *= -1;
+        ball->left_ver_right *= -1;
         mvwprintw(message_win, 2,1,"bottom top win");
         wrefresh(message_win);
         return;
@@ -161,15 +174,20 @@ int main(){
     int key = -1;
     while(key != 27){
         key = wgetch(my_win);		
-        if (key == KEY_LEFT || key == KEY_RIGHT || key == KEY_UP || key == KEY_DOWN){
-            draw_paddle(my_win, &paddle, false);
-            moove_paddle (&paddle, key);
-            draw_paddle(my_win, &paddle, true);
-
+        //if (key == KEY_LEFT || key == KEY_RIGHT || key == KEY_UP || key == KEY_DOWN){
             draw_ball(my_win, &ball, false);
             moove_ball(&ball, paddle); // adicionou-se paddle como argumento
+            
+            draw_paddle(my_win, &paddle, false);
+            moove_paddle (&paddle, key);
+            //draw_paddle(my_win, &paddle, true);
+
+            //draw_ball(my_win, &ball, false);
+            //moove_ball(&ball, paddle); // adicionou-se paddle como argumento
+            
             draw_ball(my_win, &ball, true);
-        }
+            draw_paddle(my_win, &paddle, true);
+        //}
         mvwprintw(message_win, 1,1,"%c key pressed", key);
         wrefresh(message_win);	
     }
