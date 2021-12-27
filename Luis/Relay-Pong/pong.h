@@ -25,7 +25,7 @@ void new_paddle (paddle_position_t * paddle, int legth);
 
 void draw_paddle(WINDOW *win, paddle_position_t * paddle, int _delete);
 
-void moove_paddle (paddle_position_t * paddle, int direction);
+void move_paddle (paddle_position_t * paddle, int direction);
 
 void place_ball_random(ball_position_t * ball);
 
@@ -33,5 +33,9 @@ void move_ball(ball_position_t * ball, paddle_position_t paddle);
 
 void draw_ball(WINDOW *win, ball_position_t * ball, int draw);
 
+void copy_ball(ball_position_t *a, ball_position_t *b);
+
+/*
 paddle_position_t paddle;
 ball_position_t ball;
+*/

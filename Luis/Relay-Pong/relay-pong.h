@@ -15,4 +15,4 @@ typedef struct client{
     struct client *next;
 } client;
 
-int add_new_client( client *list, char *addr, int port);
+client *add_new_client( client *list, char *addr, int port);

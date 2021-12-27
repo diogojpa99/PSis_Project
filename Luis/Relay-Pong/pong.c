@@ -57,7 +57,7 @@ void draw_paddle(WINDOW *win, paddle_position_t * paddle, int _delete){
     wrefresh(win);
 }
 
-void moove_paddle (paddle_position_t * paddle, int direction){
+void move_paddle (paddle_position_t * paddle, int direction){
     if (direction == KEY_UP){
         if (paddle->y  != 1){
             paddle->y --;
@@ -158,5 +158,15 @@ void draw_ball(WINDOW *win, ball_position_t * ball, int draw){
     return;
 }
 
+void copy_ball(ball_position_t *a, ball_position_t *b){
+    a->x = b->x;
+    a->y = b->y;
+    a->up_hor_down = b->up_hor_down;
+    a->left_ver_right = b->left_ver_right;
+    a->c = b->c;
+}
+
+/*
 paddle_position_t paddle;
 ball_position_t ball;
+*/
