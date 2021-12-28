@@ -69,14 +69,17 @@ int main(int argc, char *argv[]){
                 recv(sock_fd, &message, sizeof(message_t), 0);
                 switch(message.type){
                     case mv_ball:
-                        draw_ball(my_win, &message.ball_pos, true);
+                        draw_ball(my_win, &ball, false);
+                        copy_ball(&ball, &message.ball_pos);
+                        draw_ball(my_win, &ball, true);
                         nextstate = wait;
                         break;
                     case snd_ball:
                         copy_ball(&ball, &message.ball_pos);
+                        draw_ball(my_win, &ball, true);
+                        new_paddle(&paddle, PADLE_SIZE);
+                        draw_paddle(my_win, &paddle, true);
                         nextstate = play;
-                        break;
-                    default:
                         break;
                 }
             case play:
@@ -86,6 +89,8 @@ int main(int argc, char *argv[]){
                     message.type = rls_ball;
                     copy_ball(&message.ball_pos, &ball);
                     sendto(sock_fd, &message, sizeof(message_t), 0, (struct sockaddr*) &server_addr, sizeof(server_addr));
+                    draw_paddle(my_win, &paddle, false);
+                    nextstate = wait;
                 }
                 else if(key == 'q'){
                     // Disconnect from server
@@ -104,7 +109,6 @@ int main(int argc, char *argv[]){
                     //moove_ball(&ball, paddle); // adicionou-se paddle como argumento
                     draw_ball(my_win, &ball, true);
                     draw_paddle(my_win, &paddle, true);
-
                     // Send mv_ball
                     message.type = mv_ball;
                     copy_ball(&message.ball_pos, &ball);
@@ -113,7 +117,8 @@ int main(int argc, char *argv[]){
                 break;
         }
         mvwprintw(message_win, 1,1,"%c key pressed", key);
-        wrefresh(message_win);	
+        wrefresh(message_win);
+        wrefresh(my_win);
         currstate = nextstate;
     }
 }

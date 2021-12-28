@@ -22,6 +22,7 @@ int main(){
 	local_addr.sin_family = AF_INET;
 	local_addr.sin_port = htons(SOCK_PORT);
 	local_addr.sin_addr.s_addr = INADDR_ANY;
+	client_addr.sin_family = AF_INET;
     socklen_t new_client_addr_size = sizeof(struct sockaddr_in);
 
 	int err = bind(sock_fd, (struct sockaddr *)&local_addr, sizeof(local_addr));
@@ -43,7 +44,8 @@ int main(){
 			case conn:
 				// Add new client to list.
 				remote_port = ntohs(new_client_addr.sin_port);
-				inet_ntop(AF_INET, &client_addr.sin_addr, remote_addr, 12);
+				inet_ntop(AF_INET, &new_client_addr.sin_addr, remote_addr, 12);
+				printf("\t%s %d\n", remote_addr, remote_port);
 				client_list = add_new_client(client_list, remote_addr, remote_port);
 				// If only client in list, send send_ball message.
 				if(client_list->next == NULL){
