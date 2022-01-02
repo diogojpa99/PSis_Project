@@ -66,23 +66,27 @@ int main(int argc, char *argv[]){
     while (1) {
         switch(currstate){
             case wait:
+                mvwprintw(message_win, 1,1,"          ");
+                mvwprintw(message_win, 2,1,"                           ");
                 recv(sock_fd, &message, sizeof(message_t), 0);
-                switch(message.type){
-                    case mv_ball:
-                        draw_ball(my_win, &ball, false);
-                        copy_ball(&ball, &message.ball_pos);
-                        draw_ball(my_win, &ball, true);
-                        nextstate = wait;
-                        break;
-                    case snd_ball:
-                        copy_ball(&ball, &message.ball_pos);
-                        draw_ball(my_win, &ball, true);
-                        new_paddle(&paddle, PADLE_SIZE);
-                        draw_paddle(my_win, &paddle, true);
-                        nextstate = play;
-                        break;
+                if(message.type == mv_ball){
+                    draw_ball(my_win, &ball, false);
+                    copy_ball(&ball, &message.ball_pos);
+                    draw_ball(my_win, &ball, true);
+                    //nextstate = wait;
                 }
+                else if(message.type == snd_ball){
+                    draw_ball(my_win, &ball, false);
+                    copy_ball(&ball, &message.ball_pos);
+                    draw_ball(my_win, &ball, true);
+                    new_paddle(&paddle, PADLE_SIZE);
+                    draw_paddle(my_win, &paddle, true);
+                    nextstate = play;
+                }
+                break;
             case play:
+                mvwprintw(message_win, 1,1, "PLAY STATE");
+                mvwprintw(message_win, 2,1,"use arrow to control paddle");
                 key = wgetch(my_win);
                 if(key == 'r'){
                     // Release ball.
@@ -103,7 +107,7 @@ int main(int argc, char *argv[]){
                     draw_ball(my_win, &ball, false);
                     move_ball(&ball, paddle); // adicionou-se paddle como argumento
                     draw_paddle(my_win, &paddle, false);
-                    move_paddle (&paddle, key);
+                    move_paddle (&paddle, key, &ball);
                     //draw_paddle(my_win, &paddle, true);
                     //draw_ball(my_win, &ball, false);
                     //moove_ball(&ball, paddle); // adicionou-se paddle como argumento
@@ -116,7 +120,6 @@ int main(int argc, char *argv[]){
                 }
                 break;
         }
-        mvwprintw(message_win, 1,1,"%c key pressed", key);
         wrefresh(message_win);
         wrefresh(my_win);
         currstate = nextstate;

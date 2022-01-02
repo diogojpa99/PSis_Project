@@ -31,16 +31,16 @@ int main(){
 		exit(-1);
 	}
 
-    client *client_list, *ptr1, *ptr2, *active_player;
+    client *client_list, *ptr1, *ptr2, *active_player = NULL;
 	char remote_addr[12];
 	int remote_port;
-	message_t message;
+	message_t in_msg, out_msg;
 
 	while(1) {
 		printf("Waiting for message...\n");
-		recvfrom(sock_fd, &message, sizeof(message), 0, (struct sockaddr *) &new_client_addr, &new_client_addr_size);
+		recvfrom(sock_fd, &in_msg, sizeof(in_msg), 0, (struct sockaddr *) &new_client_addr, &new_client_addr_size);
 		printf("\tReceived message.\n");
-		switch(message.type){
+		switch(in_msg.type){
 			case conn:
 				// Add new client to list.
 				remote_port = ntohs(new_client_addr.sin_port);
@@ -50,11 +50,11 @@ int main(){
 				// If only client in list, send send_ball message.
 				if(client_list->next == NULL){
 					active_player = client_list;
-					message.type = snd_ball;
-					place_ball_random(&message.ball_pos);
+					out_msg.type = snd_ball;
+					place_ball_random(&out_msg.ball_pos);
 					inet_pton(AF_INET, client_list->addr, &client_addr.sin_addr);
 					client_addr.sin_port = htons(client_list->port);
-					sendto(sock_fd, &message, sizeof(message), 0, (struct sockaddr*) &client_addr, sizeof(client_addr));
+					sendto(sock_fd, &out_msg, sizeof(out_msg), 0, (struct sockaddr*) &client_addr, sizeof(client_addr));
 					printf("Sent message of type Send_ball\n");
 				}
 				break;
@@ -66,9 +66,9 @@ int main(){
 
 				inet_pton(AF_INET, active_player->addr, &client_addr.sin_addr);
 				client_addr.sin_port = htons(active_player->port);
-				message.type = snd_ball;
+				out_msg.type = snd_ball;
 				//message.ball_pos ... ;
-				sendto(sock_fd, &message, sizeof(message_t), 0, (struct sockaddr*) &client_addr, sizeof(client_addr));
+				sendto(sock_fd, &out_msg, sizeof(message_t), 0, (struct sockaddr*) &client_addr, sizeof(client_addr));
 				break;
 			case snd_ball:
 				break;
@@ -76,9 +76,12 @@ int main(){
 				ptr1 = client_list;
 				while(ptr1 !=NULL ){
 					if(ptr1 != active_player){
+						printf("Sending Move_ball message\n");
 						inet_pton(AF_INET, ptr1->addr, &client_addr.sin_addr);
 						client_addr.sin_port = htons(ptr1->port);
-						sendto(sock_fd, &message, sizeof(message_t), 0, (struct sockaddr*) &client_addr, sizeof(client_addr));
+						out_msg.type = mv_ball;
+						copy_ball(&out_msg.ball_pos, &in_msg.ball_pos);
+						sendto(sock_fd, &out_msg, sizeof(out_msg), 0, (struct sockaddr*) &client_addr, sizeof(client_addr));
 					}
 					ptr1 = ptr1->next;
 				}
@@ -100,9 +103,9 @@ int main(){
 						if(ptr1 != active_player){
 							inet_pton(AF_INET, active_player->addr, &client_addr.sin_addr);
 							client_addr.sin_port = htons(active_player->port);
-							message.type = snd_ball;
+							out_msg.type = snd_ball;
 							//message.ball_pos ... ;
-							sendto(sock_fd, &message, sizeof(message_t), 0, (struct sockaddr*) &client_addr, sizeof(client_addr));
+							sendto(sock_fd, &out_msg, sizeof(message_t), 0, (struct sockaddr*) &client_addr, sizeof(client_addr));
 						}
 					}
 					if(ptr1 == client_list){

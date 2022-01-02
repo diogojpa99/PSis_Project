@@ -57,27 +57,37 @@ void draw_paddle(WINDOW *win, paddle_position_t * paddle, int _delete){
     wrefresh(win);
 }
 
-void move_paddle (paddle_position_t * paddle, int direction){
+void move_paddle (paddle_position_t * paddle, int direction, ball_position_t * ball){
+    int next_x = paddle->x, next_y = paddle->y;
+
     if (direction == KEY_UP){
         if (paddle->y  != 1){
-            paddle->y --;
+            next_y --;
         }
     }
     if (direction == KEY_DOWN){
         if (paddle->y  != WINDOW_SIZE-2){
-            paddle->y ++;
+            next_y ++;
         }
     }
     
 
     if (direction == KEY_LEFT){
         if (paddle->x - paddle->length != 1){
-            paddle->x --;
+            next_x --;
+        }  
+    }
+    if (direction == KEY_RIGHT){
+        if (paddle->x + paddle->length != WINDOW_SIZE-2){
+            next_x ++;
         }
     }
-    if (direction == KEY_RIGHT)
-        if (paddle->x + paddle->length != WINDOW_SIZE-2){
-            paddle->x ++;
+
+
+    if(next_y != ball->y || ball->x < next_x - paddle->length || ball->x > next_x + paddle->length){
+        // Update paddle possition
+        paddle->x = next_x;
+        paddle->y = next_y;
     }
 
     return;
