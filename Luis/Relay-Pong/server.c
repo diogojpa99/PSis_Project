@@ -87,6 +87,7 @@ int main(){
 				}
 				break;
 			case disconn:
+				/*
 				remote_port = ntohs(new_client_addr.sin_port);
 				inet_ntop(AF_INET, &client_addr.sin_addr, remote_addr, 12);
 				ptr1 = client_list;
@@ -116,6 +117,31 @@ int main(){
 						ptr2->next = ptr1->next;
 						free(ptr1);
 					}
+				}
+				*/
+				// active player quits
+				ptr1 = client_list;
+				while(ptr1 != active_player && ptr1 != NULL){
+					ptr2=ptr1;
+					ptr1=ptr1->next;
+				}
+
+				if(ptr1 != client_list)
+					ptr2->next = ptr1->next;
+				else
+					client_list = client_list->next;
+
+				active_player = active_player->next;
+				free(ptr1);
+				if(active_player == NULL)
+					active_player = client_list;
+
+				if(active_player != NULL){
+					inet_pton(AF_INET, active_player->addr, &client_addr.sin_addr);
+					client_addr.sin_port = htons(active_player->port);
+					out_msg.type = snd_ball;
+					//message.ball_pos ... ;
+					sendto(sock_fd, &out_msg, sizeof(message_t), 0, (struct sockaddr*) &client_addr, sizeof(client_addr));
 				}
 				break;
 			default:

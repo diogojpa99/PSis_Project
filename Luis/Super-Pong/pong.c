@@ -7,9 +7,7 @@
 #define PADLE_SIZE 2
 #define MAX_CLIENTS 10
 
-WINDOW * message_win;
-
-enum direction_t{up, down, left, right};
+//WINDOW * message_win;
 
 /*
 typedef struct client{
@@ -37,18 +35,20 @@ void new_paddle (paddle_position_t * paddle, int legth){
     paddle->length = legth;
 }
 
-void draw_paddle(WINDOW *win, paddle_position_t * paddle, int _delete){
+void draw_paddle(WINDOW *win, paddle_position_t * paddle, int ch){
     
-    int ch;
+    //int ch;
     int start_x = paddle->x - paddle->length;
     int end_x = paddle->x + paddle->length;
 
 
+    /*
     if(_delete){
         ch = '=';
     }else{
         ch = ' ';
     }
+    */
 
     for (int x = start_x; x <= end_x; x++){
         wmove(win, paddle->y, x);
@@ -117,8 +117,6 @@ void move_ball(ball_position_t * ball, paddle_position_t paddle){
     if( next_y == paddle.y && next_x > paddle_start_x && next_x < paddle_end_x ){
         ball->up_hor_down *= -1;
         ball->left_ver_right = rand() % 3 -1;
-        mvwprintw(message_win, 2,1,"bottom top win");
-        wrefresh(message_win);
         return;
     }
 
@@ -126,16 +124,12 @@ void move_ball(ball_position_t * ball, paddle_position_t paddle){
     if( next_y == paddle.y && ( next_x == paddle_start_x || next_x == paddle_end_x ) ){
         ball->up_hor_down *= -1;
         ball->left_ver_right *= -1;
-        mvwprintw(message_win, 2,1,"bottom top win");
-        wrefresh(message_win);
         return;
     }
 
     if( next_x == 0 || next_x == WINDOW_SIZE-1){
         ball->up_hor_down = rand() % 3 -1 ;
         ball->left_ver_right *= -1;
-        mvwprintw(message_win, 2,1,"left right win");
-        wrefresh(message_win);
     }else{
         ball->x = next_x;
     }
@@ -143,8 +137,6 @@ void move_ball(ball_position_t * ball, paddle_position_t paddle){
     if( next_y == 0 || next_y == WINDOW_SIZE-1){
         ball->up_hor_down *= -1;
         ball->left_ver_right = rand() % 3 -1;
-        mvwprintw(message_win, 2,1,"bottom top win");
-        wrefresh(message_win);
     }else{
         ball -> y = next_y;
     }
@@ -174,6 +166,12 @@ void copy_ball(ball_position_t *a, ball_position_t *b){
     a->up_hor_down = b->up_hor_down;
     a->left_ver_right = b->left_ver_right;
     a->c = b->c;
+}
+
+void copy_paddle(paddle_position_t *a, paddle_position_t *b){
+    a->x = b->x;
+    a->y = b->y;
+    a->length = b->length;
 }
 
 /*
