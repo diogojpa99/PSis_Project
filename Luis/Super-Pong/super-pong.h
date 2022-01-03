@@ -2,7 +2,7 @@
 
 #define SOCK_PORT 6000
 
-enum msg_type{conn, paddle_move, board_update, disconn};
+typedef enum msg_type{conn, paddle_move, board_update, disconn} msg_type;
 
 typedef struct message_t{
     msg_type type;

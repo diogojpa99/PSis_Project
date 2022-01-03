@@ -3,9 +3,11 @@
 
 #include "pong.h"
 
+/*
 #define WINDOW_SIZE 20
 #define PADLE_SIZE 2
 #define MAX_CLIENTS 10
+*/
 
 //WINDOW * message_win;
 
@@ -35,11 +37,11 @@ void new_paddle (paddle_position_t * paddle, int legth){
     paddle->length = legth;
 }
 
-void draw_paddle(WINDOW *win, paddle_position_t * paddle, int ch){
+void draw_paddle(WINDOW *win, paddle_position_t paddle, int ch){
     
     //int ch;
-    int start_x = paddle->x - paddle->length;
-    int end_x = paddle->x + paddle->length;
+    int start_x = paddle.x - paddle.length;
+    int end_x = paddle.x + paddle.length;
 
 
     /*
@@ -51,43 +53,47 @@ void draw_paddle(WINDOW *win, paddle_position_t * paddle, int ch){
     */
 
     for (int x = start_x; x <= end_x; x++){
-        wmove(win, paddle->y, x);
+        wmove(win, paddle.y, x);
         waddch(win,ch);
     }
     wrefresh(win);
 }
 
-void move_paddle (paddle_position_t * paddle, int direction, ball_position_t * ball){
-    int next_x = paddle->x, next_y = paddle->y;
+// Receives an array of MAX_CLIENTS paddle positions
+void move_paddle (paddle_position_t * paddles, int direction, ball_position_t * ball, int id){
+    int next_x = paddles[id].x, next_y = paddles[id].y;
 
     if (direction == KEY_UP){
-        if (paddle->y  != 1){
+        if (paddles[id].y  != 1){
             next_y --;
         }
     }
     if (direction == KEY_DOWN){
-        if (paddle->y  != WINDOW_SIZE-2){
+        if (paddles[id].y  != WINDOW_SIZE-2){
             next_y ++;
         }
     }
-    
-
     if (direction == KEY_LEFT){
-        if (paddle->x - paddle->length != 1){
+        if (paddles[id].x - paddles[id].length != 1){
             next_x --;
         }  
     }
     if (direction == KEY_RIGHT){
-        if (paddle->x + paddle->length != WINDOW_SIZE-2){
+        if (paddles[id].x + paddles[id].length != WINDOW_SIZE-2){
             next_x ++;
         }
     }
 
-
-    if(next_y != ball->y || ball->x < next_x - paddle->length || ball->x > next_x + paddle->length){
+    // If there is a collision with another paddle, return
+    for(int i=0; i<MAX_CLIENTS; i++){
+        if(i != id && next_y == paddles[i].y && next_x+PADLE_SIZE > paddles[i].x-PADLE_SIZE && next_x-PADLE_SIZE > paddles[i].x+PADLE_SIZE)
+            return;
+    }
+    // If there is no collision with the ball, the paddle moves.
+    if(next_y != ball->y || ball->x < next_x - PADLE_SIZE || ball->x > next_x + PADLE_SIZE){
         // Update paddle position
-        paddle->x = next_x;
-        paddle->y = next_y;
+        paddles[id].x = next_x;
+        paddles[id].y = next_y;
     }
 
     return;
@@ -104,27 +110,30 @@ void place_ball_random(ball_position_t * ball){
 
 // Acrescentou-se paddle como argumrnto
 // Interceção da bola com paddle feita na função moove_ball
-void move_ball(ball_position_t * ball, paddle_position_t paddle){
+void move_ball(ball_position_t * ball, paddle_position_t *paddles, int *score){
     
     int next_x = ball->x + ball->left_ver_right;
     int next_y = ball->y + ball->up_hor_down;
 
-    int paddle_start_x = paddle.x - paddle.length;
-    int paddle_end_x = paddle.x + paddle.length;
+    int paddle_start_x;
+    int paddle_end_x;
 
+    for(int i=0; i<MAX_CLIENTS; i++){
+        paddle_start_x = paddles[i].x - PADLE_SIZE;
+        paddle_end_x = paddles[i].x + PADLE_SIZE;
 
-    //New
-    if( next_y == paddle.y && next_x > paddle_start_x && next_x < paddle_end_x ){
-        ball->up_hor_down *= -1;
-        ball->left_ver_right = rand() % 3 -1;
-        return;
-    }
-
-    // CHECK
-    if( next_y == paddle.y && ( next_x == paddle_start_x || next_x == paddle_end_x ) ){
-        ball->up_hor_down *= -1;
-        ball->left_ver_right *= -1;
-        return;
+        if( next_y == paddles[i].y && next_x > paddle_start_x && next_x < paddle_end_x ){
+            ball->up_hor_down *= -1;
+            ball->left_ver_right = rand() % 3 -1;
+            score[i]++;
+            return;
+        }
+        if( next_y == paddles[i].y && ( next_x == paddle_start_x || next_x == paddle_end_x ) ){
+            ball->up_hor_down *= -1;
+            ball->left_ver_right *= -1;
+            score[i]++;
+            return;
+        }
     }
 
     if( next_x == 0 || next_x == WINDOW_SIZE-1){
@@ -168,10 +177,10 @@ void copy_ball(ball_position_t *a, ball_position_t *b){
     a->c = b->c;
 }
 
-void copy_paddle(paddle_position_t *a, paddle_position_t *b){
-    a->x = b->x;
-    a->y = b->y;
-    a->length = b->length;
+void copy_paddle(paddle_position_t a, paddle_position_t b){
+    a.x = b.x;
+    a.y = b.y;
+    a.length = b.length;
 }
 
 /*

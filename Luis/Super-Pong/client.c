@@ -62,13 +62,13 @@ int main(int argc, char *argv[]){
             copy_ball(&ball, &message.ball_pos);
 
             for(int i=0; i<MAX_CLIENTS; i++)
-                draw_paddle(my_win, &paddles + i, ' ');
+                draw_paddle(my_win, paddles[i], ' ');
             for(int i=0; i<MAX_CLIENTS; i++){
                 if(i == id)
-                    draw_paddle(my_win, &message.paddle_pos + i, '=');
+                    draw_paddle(my_win, message.paddle_pos[i], '=');
                 else
-                    draw_paddle(my_win, &message.paddle_pos + i, '_');
-                copy_paddle(&paddles +i, &message.paddle_pos +i);
+                    draw_paddle(my_win, message.paddle_pos[i], '_');
+                copy_paddle(paddles[i], message.paddle_pos[i]);
             }
             
             for(int i=0; i<MAX_CLIENTS; i++){
@@ -85,5 +85,4 @@ int main(int argc, char *argv[]){
             sendto(sock_fd, &message, sizeof(message_t), 0, (struct sockaddr *) &server_addr, sizeof(server_addr));
         }
     }
-
 }
