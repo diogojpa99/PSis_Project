@@ -7,7 +7,7 @@
 
 //WINDOW * message_win;
 
-enum direction_t{up, down, left, right};
+//enum direction_t{up, down, left, right};
 
 typedef struct ball_position_t{
     int x, y;
@@ -21,7 +21,7 @@ typedef struct paddle_position_t{
     int length;
 } paddle_position_t;
 
-void new_paddle (paddle_position_t * paddle, int legth);
+void new_paddle (paddle_position_t * paddles, int legth, int id);
 
 void draw_paddle(WINDOW *win, paddle_position_t paddle, int ch);
 

@@ -12,3 +12,13 @@ typedef struct message_t{
     int id;
     int key;
 } message_t;
+
+typedef struct client{
+    char addr[12];
+    int port;
+    int id;
+    struct client *next;
+}client;
+
+client *add_new_client( client *list, char *addr, int port, int * score, paddle_position_t * paddles);
+

@@ -6,7 +6,6 @@
 /*
 #define WINDOW_SIZE 20
 #define PADLE_SIZE 2
-#define MAX_CLIENTS 10
 */
 
 //WINDOW * message_win;
@@ -31,10 +30,18 @@ typedef struct paddle_position_t{
 } paddle_position_t;
 */
 
-void new_paddle (paddle_position_t * paddle, int legth){
-    paddle->x = WINDOW_SIZE/2;
-    paddle->y = WINDOW_SIZE-2;
-    paddle->length = legth;
+void new_paddle (paddle_position_t * paddles, int legth, int id){
+    paddles[id].x = WINDOW_SIZE/2;
+    paddles[id].y = WINDOW_SIZE-2;
+    paddles[id].length = legth;
+    while(1){
+        for(int i=0; i<MAX_CLIENTS; i++){
+            if(i != id && paddles[id].y == paddles[i].y && paddles[id].x+legth > paddles[i].x-legth && paddles[id].x-legth > paddles[i].x+legth)
+                paddles[id].y--;
+            else
+                break;
+        }
+    }
 }
 
 void draw_paddle(WINDOW *win, paddle_position_t paddle, int ch){
