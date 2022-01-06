@@ -34,6 +34,7 @@ void new_paddle (paddle_position_t * paddles, int legth, int id){
     paddles[id].x = WINDOW_SIZE/2;
     paddles[id].y = WINDOW_SIZE-2;
     paddles[id].length = legth;
+    /*
     while(1){
         for(int i=0; i<MAX_CLIENTS; i++){
             if(i != id && paddles[id].y == paddles[i].y && paddles[id].x+legth > paddles[i].x-legth && paddles[id].x-legth > paddles[i].x+legth)
@@ -42,6 +43,7 @@ void new_paddle (paddle_position_t * paddles, int legth, int id){
                 break;
         }
     }
+    */
 }
 
 void draw_paddle(WINDOW *win, paddle_position_t paddle, int ch){
@@ -50,6 +52,8 @@ void draw_paddle(WINDOW *win, paddle_position_t paddle, int ch){
     int start_x = paddle.x - paddle.length;
     int end_x = paddle.x + paddle.length;
 
+    if(paddle.x <= 0 || paddle.y <= 0)
+        return;
 
     /*
     if(_delete){
@@ -184,10 +188,12 @@ void copy_ball(ball_position_t *a, ball_position_t *b){
     a->c = b->c;
 }
 
-void copy_paddle(paddle_position_t a, paddle_position_t b){
-    a.x = b.x;
-    a.y = b.y;
-    a.length = b.length;
+void copy_paddles(paddle_position_t * a, paddle_position_t * b){
+    for(int i=0;i<MAX_CLIENTS;i++){
+        a[i].x = b[i].x;
+        a[i].y = b[i].y;
+        a[i].length = b[i].length;
+    }
 }
 
 /*

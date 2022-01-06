@@ -30,24 +30,27 @@ int main(){
 		exit(-1);
 	}
 
-    int registered_players = 0, players_ready=0, score[MAX_CLIENTS], remote_port;
-    client *client_list, *ptr1, *ptr2, *active_player = NULL;
+    int registered_players = 0, players_ready=0, score[MAX_CLIENTS], remote_port, id;
+    client *client_list = NULL, *ptr1, *ptr2, *active_player = NULL;
 	char remote_addr[12];
 	message_t in_msg, out_msg;
     ball_position_t ball;
     paddle_position_t paddles[MAX_CLIENTS];
 
+    int nbytes;
+
     for (int i=0;i<MAX_CLIENTS;i++){
         score[i]=-1;
         paddles[i].x = paddles[i].y = -1;
+        paddles[i].length = PADLE_SIZE;
     }
     
     place_ball_random(&ball);
 
     while (1) {
         printf("Waiting for message...\n");
-		recvfrom(sock_fd, &in_msg, sizeof(in_msg), 0, (struct sockaddr *) &new_client_addr, &new_client_addr_size);
-		printf("\tReceived message.\n");
+		nbytes = recvfrom(sock_fd, &in_msg, sizeof(in_msg), 0, (struct sockaddr *) &new_client_addr, &new_client_addr_size);
+		printf("\tReceived message (%d B).\n", nbytes);
 		switch(in_msg.type){
 			case conn:
 				if(registered_players <= MAX_CLIENTS){
@@ -55,14 +58,22 @@ int main(){
                     remote_port = ntohs(new_client_addr.sin_port);
                     inet_ntop(AF_INET, &new_client_addr.sin_addr, remote_addr, 12);
                     printf("\t%s %d\n", remote_addr, remote_port);
-                    client_list = add_new_client(client_list, remote_addr, remote_port, score, paddles);
+                    client_list = add_new_client(client_list, remote_addr, remote_port, score, paddles, &id);
                     registered_players ++;
                 }
                 // Send board update.
-                /* TO DO */
+                out_msg.type = board_update;
+                copy_ball(&out_msg.ball_pos, &ball);
+                for(int i=0; i<MAX_CLIENTS; i++){                    
+                    out_msg.score[i] = score[i];
+                }
+                copy_paddles(out_msg.paddle_pos, paddles);
+                out_msg.id = id;
+                sendto(sock_fd, &out_msg, sizeof(message_t), 0, (struct sockaddr *) &new_client_addr, sizeof(new_client_addr));
+                printf("\tSent board_update message.\n");
                 break;
             case disconn:
-                // Remove client from list.
+                // Remove client from list. --Check!
                 ptr1 = client_list;
                 ptr2 = NULL;
                 while(ptr1!=NULL && ptr1->id != in_msg.id){
@@ -88,7 +99,22 @@ int main(){
                     move_ball(&ball, paddles, score);
                     players_ready = 0;
                     /*TO DO*/
-                }
+                    out_msg.type = board_update;
+                    copy_ball(&out_msg.ball_pos, &ball);
+                    for(int i=0; i<MAX_CLIENTS; i++){    
+                        out_msg.score[i] = score[i];
+                    }
+                    copy_paddles(out_msg.paddle_pos, paddles);
+                    ptr1 = client_list;
+                    while(ptr1 != NULL){
+                        out_msg.id = ptr1->id;
+                        /****************************************************************/
+                        inet_pton(AF_INET, ptr1->addr, &client_addr.sin_addr);
+                        client_addr.sin_port = htons(ptr1->port);
+                        sendto(sock_fd, &out_msg, sizeof(message_t), 0, (struct sockaddr *) &client_addr, sizeof(client_addr));
+                        ptr1 = ptr1->next;
+                    }
+                 }
                 break;
         }
     }

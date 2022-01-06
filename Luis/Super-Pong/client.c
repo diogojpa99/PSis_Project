@@ -53,7 +53,11 @@ int main(int argc, char *argv[]){
     paddle_position_t paddles[MAX_CLIENTS];
 
     while (1) {
+        //mvwprintw(message_win, 1,1, "Waiting for Server");
+        //wrefresh(message_win);
         recv(sock_fd, &message, sizeof(message_t), 0);
+        //mvwprintw(message_win, 1,1, "Server responded");
+        //wrefresh(message_win);
         if(message.type == board_update){
             id = message.id;
 
@@ -68,20 +72,23 @@ int main(int argc, char *argv[]){
                     draw_paddle(my_win, message.paddle_pos[i], '=');
                 else
                     draw_paddle(my_win, message.paddle_pos[i], '_');
-                copy_paddle(paddles[i], message.paddle_pos[i]);
             }
+            copy_paddles(paddles, message.paddle_pos);
             
             for(int i=0; i<MAX_CLIENTS; i++){
-                mvwprintw(message_win,i,1, "P%d - %d", i, message.score[i]);
+                mvwprintw(message_win,i+1,1, "P%d - %d", i+1, message.score[i]);
             }
-            mvwprintw(message_win, id, 8, "<---");
+            mvwprintw(message_win, id+1, 8, "<---");
             wrefresh(message_win);
             wrefresh(my_win);
 
             key = wgetch(my_win);
             message.key = key;
             message.id = id;
-            message.type = paddle_move;
+            if(key=='q')
+                message.type = disconn; // EXIT!!
+            else
+                message.type = paddle_move;
             sendto(sock_fd, &message, sizeof(message_t), 0, (struct sockaddr *) &server_addr, sizeof(server_addr));
         }
     }

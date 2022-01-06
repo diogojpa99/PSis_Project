@@ -20,5 +20,5 @@ typedef struct client{
     struct client *next;
 }client;
 
-client *add_new_client( client *list, char *addr, int port, int * score, paddle_position_t * paddles);
+client *add_new_client(client *list, char *addr, int port, int * score, paddle_position_t * paddles, int *id);
 
