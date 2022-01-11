@@ -78,7 +78,7 @@ int main(){
                 printf("\tSent board_update message.\n");
                 break;
             case disconn:
-                // Remove client from list. --Check!
+                // Remove client from list.
                 ptr1 = client_list;
                 ptr2 = NULL;
                 while(ptr1!=NULL && ptr1->id != in_msg.id){
@@ -120,22 +120,6 @@ int main(){
                     // Move the ball.
                     move_ball(&ball, paddles, score);
                     players_ready = 0;
-                    /*
-                    out_msg.type = board_update;
-                    copy_ball(&out_msg.ball_pos, &ball);
-                    for(int i=0; i<MAX_CLIENTS; i++){    
-                        out_msg.score[i] = score[i];
-                    }
-                    copy_paddles(out_msg.paddle_pos, paddles);
-                    ptr1 = client_list;
-                    while(ptr1 != NULL){
-                        out_msg.id = ptr1->id;
-                        inet_pton(AF_INET, ptr1->addr, &client_addr.sin_addr);
-                        client_addr.sin_port = htons(ptr1->port);
-                        sendto(sock_fd, &out_msg, sizeof(message_t), 0, (struct sockaddr *) &client_addr, sizeof(client_addr));
-                        ptr1 = ptr1->next;
-                    }
-                    */
                  }
                 break;
         }

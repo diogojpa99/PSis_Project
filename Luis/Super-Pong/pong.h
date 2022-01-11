@@ -5,10 +5,6 @@
 #define PADLE_SIZE 2
 #define MAX_CLIENTS 10
 
-//WINDOW * message_win;
-
-//enum direction_t{up, down, left, right};
-
 typedef struct ball_position_t{
     int x, y;
     int up_hor_down; //  -1 up, 0 horizontal, 1 down
@@ -36,8 +32,3 @@ void draw_ball(WINDOW *win, ball_position_t * ball, int draw);
 void copy_ball(ball_position_t *a, ball_position_t *b);
 
 void copy_paddles(paddle_position_t * a, paddle_position_t * b);
-
-/*
-paddle_position_t paddle;
-ball_position_t ball;
-*/

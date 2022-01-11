@@ -3,33 +3,6 @@
 
 #include "pong.h"
 
-/*
-#define WINDOW_SIZE 20
-#define PADLE_SIZE 2
-*/
-
-//WINDOW * message_win;
-
-/*
-typedef struct client{
-    char addr[12]; // string containing the client's IP address
-    int port; // local type -> use htons and ntohs
-    struct client *next;
-} client;
-
-typedef struct ball_position_t{
-    int x, y;
-    int up_hor_down; //  -1 up, 0 horizontal, 1 down
-    int left_ver_right; //  -1 left, 0 vertical,1 right
-    char c;
-} ball_position_t;
-
-typedef struct paddle_position_t{
-    int x, y;
-    int length;
-} paddle_position_t;
-*/
-
 void new_paddle (paddle_position_t * paddles, int legth, int id){
     paddles[id].x = WINDOW_SIZE/2;
     paddles[id].y = WINDOW_SIZE-2;
@@ -48,21 +21,11 @@ void new_paddle (paddle_position_t * paddles, int legth, int id){
 }
 
 void draw_paddle(WINDOW *win, paddle_position_t paddle, int ch){
-    
-    //int ch;
     int start_x = paddle.x - paddle.length;
     int end_x = paddle.x + paddle.length;
 
     if(paddle.x <= 0 || paddle.y <= 0)
         return;
-
-    /*
-    if(_delete){
-        ch = '=';
-    }else{
-        ch = ' ';
-    }
-    */
 
     for (int x = start_x; x <= end_x; x++){
         wmove(win, paddle.y, x);
@@ -71,7 +34,10 @@ void draw_paddle(WINDOW *win, paddle_position_t paddle, int ch){
     wrefresh(win);
 }
 
-// Receives an array of MAX_CLIENTS paddle positions
+/*
+    Function move_paddle was modified to avoid collisions with the ball and with other paddles.
+    The client's paddle is identified by their id.
+*/
 void move_paddle (paddle_position_t * paddles, int direction, ball_position_t * ball, int id){
     int next_x = paddles[id].x, next_y = paddles[id].y;
 
