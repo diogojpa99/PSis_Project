@@ -76,7 +76,10 @@ int main(int argc, char *argv[]){
             copy_paddles(paddles, message.paddle_pos);
             
             for(int i=0; i<MAX_CLIENTS; i++){
-                mvwprintw(message_win,i+1,1, "P%d - %d", i+1, message.score[i]);
+                if(message.score[i]>=0)
+                    mvwprintw(message_win,i+1,1, "P%d - %d", i+1, message.score[i]);
+                else
+                    mvwprintw(message_win,i+1,1, "          ", i+1);
             }
             mvwprintw(message_win, id+1, 8, "<---");
             wrefresh(message_win);

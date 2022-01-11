@@ -93,12 +93,14 @@ int main(){
                 break;
             case paddle_move:
                 move_paddle(paddles, in_msg.key, &ball, in_msg.id);
+                
+                // Send board update.
+                
                 players_ready++;
                 if(players_ready == registered_players){
-                    // Move the ball and update boards.
+                    // Move the ball.
                     move_ball(&ball, paddles, score);
                     players_ready = 0;
-                    /*TO DO*/
                     out_msg.type = board_update;
                     copy_ball(&out_msg.ball_pos, &ball);
                     for(int i=0; i<MAX_CLIENTS; i++){    
