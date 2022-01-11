@@ -34,16 +34,17 @@ void new_paddle (paddle_position_t * paddles, int legth, int id){
     paddles[id].x = WINDOW_SIZE/2;
     paddles[id].y = WINDOW_SIZE-2;
     paddles[id].length = legth;
-    /*
-    while(1){
-        for(int i=0; i<MAX_CLIENTS; i++){
-            if(i != id && paddles[id].y == paddles[i].y && paddles[id].x+legth > paddles[i].x-legth && paddles[id].x-legth > paddles[i].x+legth)
-                paddles[id].y--;
-            else
-                break;
+    int i=0;
+    while(i<MAX_CLIENTS){
+        printf("loop: i=%d\n", i);
+        if( i!=id && paddles[id].y==paddles[i].y ){
+            paddles[id].y--;
+            i=0;
         }
+        else
+            i++;
     }
-    */
+    return;
 }
 
 void draw_paddle(WINDOW *win, paddle_position_t paddle, int ch){
@@ -97,7 +98,7 @@ void move_paddle (paddle_position_t * paddles, int direction, ball_position_t * 
 
     // If there is a collision with another paddle, return
     for(int i=0; i<MAX_CLIENTS; i++){
-        if(i != id && next_y == paddles[i].y && next_x+PADLE_SIZE > paddles[i].x-PADLE_SIZE && next_x-PADLE_SIZE > paddles[i].x+PADLE_SIZE)
+        if(i != id && next_y == paddles[i].y && next_x+PADLE_SIZE >= paddles[i].x-PADLE_SIZE && next_x-PADLE_SIZE <= paddles[i].x+PADLE_SIZE)
             return;
     }
     // If there is no collision with the ball, the paddle moves.

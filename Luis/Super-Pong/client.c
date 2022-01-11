@@ -44,7 +44,7 @@ int main(int argc, char *argv[]){
 	wrefresh(my_win);
     keypad(my_win, true);
     /* Create message window */
-    WINDOW * message_win = newwin(5, WINDOW_SIZE+10, WINDOW_SIZE, 0);
+    WINDOW * message_win = newwin(MAX_CLIENTS+2, WINDOW_SIZE+10, WINDOW_SIZE, 0);
     box(message_win, 0 , 0);	
 	wrefresh(message_win);
 
@@ -59,6 +59,9 @@ int main(int argc, char *argv[]){
         //mvwprintw(message_win, 1,1, "Server responded");
         //wrefresh(message_win);
         if(message.type == board_update){
+            if(message.id == -1)
+                exit(0);
+            
             id = message.id;
 
             draw_ball(my_win, &ball, false);

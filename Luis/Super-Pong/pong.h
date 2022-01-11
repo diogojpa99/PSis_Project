@@ -3,7 +3,7 @@
 
 #define WINDOW_SIZE 20
 #define PADLE_SIZE 2
-#define MAX_CLIENTS 3
+#define MAX_CLIENTS 10
 
 //WINDOW * message_win;
 

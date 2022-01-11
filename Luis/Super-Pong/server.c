@@ -68,7 +68,12 @@ int main(){
                     out_msg.score[i] = score[i];
                 }
                 copy_paddles(out_msg.paddle_pos, paddles);
-                out_msg.id = id;
+                if(registered_players > MAX_CLIENTS){
+                    out_msg.id=-1;
+                    registered_players--;
+                }
+                else
+                    out_msg.id = id;
                 sendto(sock_fd, &out_msg, sizeof(message_t), 0, (struct sockaddr *) &new_client_addr, sizeof(new_client_addr));
                 printf("\tSent board_update message.\n");
                 break;
@@ -93,14 +98,29 @@ int main(){
                 break;
             case paddle_move:
                 move_paddle(paddles, in_msg.key, &ball, in_msg.id);
-                
                 // Send board update.
-                
+                ptr1 = client_list;
+                while(ptr1->id != in_msg.id){
+                    ptr1 = ptr1->next;
+                }
+                if(ptr1 != NULL){
+                    out_msg.type = board_update;
+                    copy_ball(&out_msg.ball_pos, &ball);
+                    for(int i=0; i<MAX_CLIENTS; i++){    
+                        out_msg.score[i] = score[i];
+                    }
+                    copy_paddles(out_msg.paddle_pos, paddles);
+                    out_msg.id = ptr1->id;
+                    inet_pton(AF_INET, ptr1->addr, &client_addr.sin_addr);
+                    client_addr.sin_port = htons(ptr1->port);
+                    sendto(sock_fd, &out_msg, sizeof(message_t), 0, (struct sockaddr *) &client_addr, sizeof(client_addr));
+                }
                 players_ready++;
                 if(players_ready == registered_players){
                     // Move the ball.
                     move_ball(&ball, paddles, score);
                     players_ready = 0;
+                    /*
                     out_msg.type = board_update;
                     copy_ball(&out_msg.ball_pos, &ball);
                     for(int i=0; i<MAX_CLIENTS; i++){    
@@ -110,12 +130,12 @@ int main(){
                     ptr1 = client_list;
                     while(ptr1 != NULL){
                         out_msg.id = ptr1->id;
-                        /****************************************************************/
                         inet_pton(AF_INET, ptr1->addr, &client_addr.sin_addr);
                         client_addr.sin_port = htons(ptr1->port);
                         sendto(sock_fd, &out_msg, sizeof(message_t), 0, (struct sockaddr *) &client_addr, sizeof(client_addr));
                         ptr1 = ptr1->next;
                     }
+                    */
                  }
                 break;
         }
