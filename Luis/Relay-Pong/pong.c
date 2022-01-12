@@ -7,34 +7,18 @@
 #define PADLE_SIZE 2
 #define MAX_CLIENTS 10
 
-WINDOW * message_win;
-
 enum direction_t{up, down, left, right};
 
 /*
-typedef struct client{
-    char addr[12]; // string containing the client's IP address
-    int port; // local type -> use htons and ntohs
-    struct client *next;
-} client;
-
-typedef struct ball_position_t{
-    int x, y;
-    int up_hor_down; //  -1 up, 0 horizontal, 1 down
-    int left_ver_right; //  -1 left, 0 vertical,1 right
-    char c;
-} ball_position_t;
-
-typedef struct paddle_position_t{
-    int x, y;
-    int length;
-} paddle_position_t;
+    This function creates a new paddle, and makes sure it doesn't land on the ball.
 */
-
-void new_paddle (paddle_position_t * paddle, int legth){
+void new_paddle (paddle_position_t * paddle, int legth, ball_position_t ball){
     paddle->x = WINDOW_SIZE/2;
     paddle->y = WINDOW_SIZE-2;
     paddle->length = legth;
+    // If the paddle is in the same line as the ball, we move it up a line.
+    if(paddle->y == ball.y)
+        paddle->y--;
 }
 
 void draw_paddle(WINDOW *win, paddle_position_t * paddle, int _delete){
@@ -57,6 +41,9 @@ void draw_paddle(WINDOW *win, paddle_position_t * paddle, int _delete){
     wrefresh(win);
 }
 
+/*
+    This function moves the paddle, as long as it doesn't collide with walls or with the ball.
+*/
 void move_paddle (paddle_position_t * paddle, int direction, ball_position_t * ball){
     int next_x = paddle->x, next_y = paddle->y;
 
@@ -83,7 +70,7 @@ void move_paddle (paddle_position_t * paddle, int direction, ball_position_t * b
         }
     }
 
-
+    // The paddle only moves if it doesn't collide with the ball.
     if(next_y != ball->y || ball->x < next_x - paddle->length || ball->x > next_x + paddle->length){
         // Update paddle position
         paddle->x = next_x;
@@ -102,8 +89,11 @@ void place_ball_random(ball_position_t * ball){
 }
 
 
-// Acrescentou-se paddle como argumrnto
-// Interceção da bola com paddle feita na função moove_ball
+/*
+    This funtion moves the ball on the field.
+    It takes into acount the walls and the paddle.
+    If the ball runs into a wall or a paddle, it changes direction.
+*/
 void move_ball(ball_position_t * ball, paddle_position_t paddle){
     
     int next_x = ball->x + ball->left_ver_right;
@@ -112,30 +102,22 @@ void move_ball(ball_position_t * ball, paddle_position_t paddle){
     int paddle_start_x = paddle.x - paddle.length;
     int paddle_end_x = paddle.x + paddle.length;
 
-
-    //New
+    // If the ball hits the top or bottom of the paddle, it changes its vertical orientation.
     if( next_y == paddle.y && next_x > paddle_start_x && next_x < paddle_end_x ){
         ball->up_hor_down *= -1;
         ball->left_ver_right = rand() % 3 -1;
-        mvwprintw(message_win, 2,1,"bottom top win");
-        wrefresh(message_win);
         return;
     }
-
-    // CHECK
+    // If the ball hits the sides/edges of the paddle, it changes its horizontal orientation, as wel as its vertical orientation.
     if( next_y == paddle.y && ( next_x == paddle_start_x || next_x == paddle_end_x ) ){
         ball->up_hor_down *= -1;
         ball->left_ver_right *= -1;
-        mvwprintw(message_win, 2,1,"bottom top win");
-        wrefresh(message_win);
         return;
     }
 
     if( next_x == 0 || next_x == WINDOW_SIZE-1){
         ball->up_hor_down = rand() % 3 -1 ;
         ball->left_ver_right *= -1;
-        mvwprintw(message_win, 2,1,"left right win");
-        wrefresh(message_win);
     }else{
         ball->x = next_x;
     }
@@ -143,9 +125,8 @@ void move_ball(ball_position_t * ball, paddle_position_t paddle){
     if( next_y == 0 || next_y == WINDOW_SIZE-1){
         ball->up_hor_down *= -1;
         ball->left_ver_right = rand() % 3 -1;
-        mvwprintw(message_win, 2,1,"bottom top win");
-        wrefresh(message_win);
     }else{
+        // If there are no collisions, the ball advances.
         ball -> y = next_y;
     }
 
@@ -175,8 +156,3 @@ void copy_ball(ball_position_t *a, ball_position_t *b){
     a->left_ver_right = b->left_ver_right;
     a->c = b->c;
 }
-
-/*
-paddle_position_t paddle;
-ball_position_t ball;
-*/

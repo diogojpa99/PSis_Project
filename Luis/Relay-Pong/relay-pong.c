@@ -3,10 +3,9 @@
 
 #include "relay-pong.h"
 
-// Adds a new entry to the server's list of clients.
-// Returns:
-//   -1 if an error occurs during memory allocation;
-//   0 if successful.
+/*
+    This function adds a new entry to the server's list of clients.
+*/
 client *add_new_client( client *list, char *addr, int port){
     client *new, *p=list;
 
@@ -30,4 +29,32 @@ client *add_new_client( client *list, char *addr, int port){
     p->next = new;
     return list;
 
+}
+
+/*
+    This function is used to check the validity of a message.
+    Its return is 0, for a valid msg, or -1, for an invalid one.
+*/
+int check_message(message_t msg){
+    switch(msg.type){
+        case conn:
+            break;
+        case rls_ball:
+            if (msg.ball_pos.x < 1 || msg.ball_pos.x > WINDOW_SIZE-2 || msg.ball_pos.y < 1 || msg.ball_pos.y > WINDOW_SIZE-2 || msg.ball_pos.c != 'o')
+                return -1;
+            break;
+        case snd_ball:
+            if (msg.ball_pos.x < 1 || msg.ball_pos.x > WINDOW_SIZE-2 || msg.ball_pos.y < 1 || msg.ball_pos.y > WINDOW_SIZE-2 || msg.ball_pos.c != 'o')
+                return -1;
+            break;
+        case mv_ball:
+            if (msg.ball_pos.x < 1 || msg.ball_pos.x > WINDOW_SIZE-2 || msg.ball_pos.y < 1 || msg.ball_pos.y > WINDOW_SIZE-2 || msg.ball_pos.c != 'o')
+                return -1;
+            break;
+        case disconn:
+            break;
+        default:
+            return -1;
+    }
+    return 0;
 }

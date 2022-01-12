@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include "relay-pong.h"
 
@@ -49,52 +50,76 @@ int main(int argc, char *argv[]){
     box(message_win, 0 , 0);	
 	wrefresh(message_win);
 
-    /*
-    new_paddle(&paddle, PADLE_SIZE);
-    draw_paddle(my_win, &paddle, true);
-
-    place_ball_random(&ball);
-    draw_ball(my_win, &ball, true);
-    */
-
     typedef enum state{wait, play} state;
     int key;
-    state currstate = wait, nextstate = wait;
     ball_position_t ball;
     paddle_position_t paddle;
+    time_t t_snd_ball, t;
+    int nbytes;
 
+    /*
+        The client is a state machine with two states:
+            wait:
+                the client receives mv_ball messages from the server and updates its screen.
+            play:
+                the client reads characters from the keyboard and reacts accordingly.
+                'r' releases the ball (only after playing for 10 s);
+                'q' disconnects from the server and exits;
+                any other key moves the paddle and the ball. (Only arrow keys can actually move the paddle)
+    */
+    state currstate = wait, nextstate = wait; // Start in wait state.
     while (1) {
         switch(currstate){
             case wait:
+                // Clear message_win.
                 mvwprintw(message_win, 1,1,"          ");
                 mvwprintw(message_win, 2,1,"                           ");
-                recv(sock_fd, &message, sizeof(message_t), 0);
-                if(message.type == mv_ball){
-                    draw_ball(my_win, &ball, false);
-                    copy_ball(&ball, &message.ball_pos);
-                    draw_ball(my_win, &ball, true);
-                    //nextstate = wait;
-                }
-                else if(message.type == snd_ball){
-                    draw_ball(my_win, &ball, false);
-                    copy_ball(&ball, &message.ball_pos);
-                    draw_ball(my_win, &ball, true);
-                    new_paddle(&paddle, PADLE_SIZE);
-                    draw_paddle(my_win, &paddle, true);
-                    nextstate = play;
+                wrefresh(message_win);
+                nbytes = recv(sock_fd, &message, sizeof(message_t), 0);
+                if(nbytes == sizeof(message_t) && check_message(message)==0){
+                    if(message.type == mv_ball){
+                        // Update the ball on the screen.
+                        draw_ball(my_win, &ball, false);
+                        copy_ball(&ball, &message.ball_pos);
+                        draw_ball(my_win, &ball, true);
+                    }
+                    else if(message.type == snd_ball){
+                        // Set the time at which we received the snd_ball message (t_snd_ball).
+                        t_snd_ball = time(NULL);
+
+                        // Update the ball on the screen.
+                        draw_ball(my_win, &ball, false);
+                        copy_ball(&ball, &message.ball_pos);
+                        draw_ball(my_win, &ball, true);
+
+                        // Create a new paddle.
+                        // A new paddle is created each time the client gets the ball in order to make sure one doesn't land on top of the other.
+                        new_paddle(&paddle, PADLE_SIZE, ball);
+                        draw_paddle(my_win, &paddle, true);
+
+                        // Enter play state.
+                        nextstate = play;
+                    }
                 }
                 break;
             case play:
                 mvwprintw(message_win, 1,1, "PLAY STATE");
                 mvwprintw(message_win, 2,1,"use arrow to control paddle");
+                wrefresh(message_win);
                 key = wgetch(my_win);
+                t = time(NULL); // Record instant when the key is pressed.
                 if(key == 'r'){
-                    // Release ball.
-                    message.type = rls_ball;
-                    copy_ball(&message.ball_pos, &ball);
-                    sendto(sock_fd, &message, sizeof(message_t), 0, (struct sockaddr*) &server_addr, sizeof(server_addr));
-                    draw_paddle(my_win, &paddle, false);
-                    nextstate = wait;
+                    // If 10 seconds have passed since receiving the snd_ball message, the ball is released.
+                    if(t - t_snd_ball >= 10){
+                        // Send rls_ball message.
+                        message.type = rls_ball;
+                        copy_ball(&message.ball_pos, &ball);
+                        sendto(sock_fd, &message, sizeof(message_t), 0, (struct sockaddr*) &server_addr, sizeof(server_addr));
+                        draw_paddle(my_win, &paddle, false);
+
+                        // Enter wait state.
+                        nextstate = wait;
+                    }
                 }
                 else if(key == 'q'){
                     // Disconnect from server
@@ -104,23 +129,21 @@ int main(int argc, char *argv[]){
                     exit(0);
                 }
                 else{
+                    // move ball and paddle and update the screen.
                     draw_ball(my_win, &ball, false);
-                    move_ball(&ball, paddle); // adicionou-se paddle como argumento
+                    move_ball(&ball, paddle);
                     draw_paddle(my_win, &paddle, false);
                     move_paddle (&paddle, key, &ball);
-                    //draw_paddle(my_win, &paddle, true);
-                    //draw_ball(my_win, &ball, false);
-                    //moove_ball(&ball, paddle); // adicionou-se paddle como argumento
                     draw_ball(my_win, &ball, true);
                     draw_paddle(my_win, &paddle, true);
-                    // Send mv_ball
+
+                    // Send mv_ball.
                     message.type = mv_ball;
                     copy_ball(&message.ball_pos, &ball);
                     sendto(sock_fd, &message, sizeof(message_t), 0, (struct sockaddr*) &server_addr, sizeof(server_addr));
                 }
                 break;
         }
-        wrefresh(message_win);
         wrefresh(my_win);
         currstate = nextstate;
     }

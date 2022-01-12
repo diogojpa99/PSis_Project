@@ -16,3 +16,5 @@ typedef struct client{
 } client;
 
 client *add_new_client( client *list, char *addr, int port);
+
+int check_message(message_t msg);

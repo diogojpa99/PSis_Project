@@ -21,7 +21,7 @@ typedef struct paddle_position_t{
     int length;
 } paddle_position_t;
 
-void new_paddle (paddle_position_t * paddle, int legth);
+void new_paddle (paddle_position_t * paddle, int legth, ball_position_t ball);
 
 void draw_paddle(WINDOW *win, paddle_position_t * paddle, int _delete);
 

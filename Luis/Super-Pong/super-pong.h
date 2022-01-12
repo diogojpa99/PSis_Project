@@ -33,5 +33,11 @@ typedef struct client{
     struct client *next;
 }client;
 
-client *add_new_client(client *list, char *addr, int port, int * score, paddle_position_t * paddles, int *id);
+/*
+    The server holds a list containing the information of the clients
+    This function is used when a new client tries to connect to the server.
+    It is also where clients get their id.
+*/
+client *add_new_client(client *list, char *addr, int port, int * score, paddle_position_t * paddles, int *id, ball_position_t ball);
 
+int check_message(message_t msg);

@@ -3,20 +3,37 @@
 
 #include "pong.h"
 
-void new_paddle (paddle_position_t * paddles, int legth, int id){
+/*
+    Creates a new paddle for the client with the given id.
+    While creating a new paddle, it is important that it doesn't land on top of an existing one or on the ball.
+    Since there are more lines than clients, we just make sure it doesn't land on the same line as another paddle.
+*/
+void new_paddle (paddle_position_t * paddles, int legth, int id, ball_position_t ball){
     paddles[id].x = WINDOW_SIZE/2;
     paddles[id].y = WINDOW_SIZE-2;
     paddles[id].length = legth;
     int i=0;
+    // Test for collisions.
     while(i<MAX_CLIENTS){
-        printf("loop: i=%d\n", i);
+        // If the new paddle is in the same line as another one
         if( i!=id && paddles[id].y==paddles[i].y ){
+            // Move it up a line and start checking for collisions again.
             paddles[id].y--;
             i=0;
         }
         else
-            i++;
+            i++; // If not, check the next paddle.
+        // Lastly, check for collisions with the ball.
+        if(i==MAX_CLIENTS){
+             // If the new paddle is in the same line as the ball
+            if(paddles[id].y == ball.y){
+                // Move it up a line and start checking for collisions again.
+                paddles[id].y--;
+                i=0;
+            }
+        }
     }
+    // When this loop ends, it means we have found a valid position for the new paddle.
     return;
 }
 
@@ -35,8 +52,8 @@ void draw_paddle(WINDOW *win, paddle_position_t paddle, int ch){
 }
 
 /*
-    Function move_paddle was modified to avoid collisions with the ball and with other paddles.
-    The client's paddle is identified by their id.
+    This function moves the paddle of the player with the given id.
+    It avoids collisions with the ball and with other paddles.
 */
 void move_paddle (paddle_position_t * paddles, int direction, ball_position_t * ball, int id){
     int next_x = paddles[id].x, next_y = paddles[id].y;
@@ -62,7 +79,7 @@ void move_paddle (paddle_position_t * paddles, int direction, ball_position_t * 
         }
     }
 
-    // If there is a collision with another paddle, return
+    // If there is a collision with any other paddle, our paddle doesn't move.
     for(int i=0; i<MAX_CLIENTS; i++){
         if(i != id && next_y == paddles[i].y && next_x+PADLE_SIZE >= paddles[i].x-PADLE_SIZE && next_x-PADLE_SIZE <= paddles[i].x+PADLE_SIZE)
             return;
@@ -85,9 +102,10 @@ void place_ball_random(ball_position_t * ball){
     ball->left_ver_right = rand() % 3 -1 ; // 0 vertical, -1 left, 1 right
 }
 
+/*
+    This function moves the ball.
 
-// Acrescentou-se paddle como argumrnto
-// Interceção da bola com paddle feita na função moove_ball
+*/
 void move_ball(ball_position_t * ball, paddle_position_t *paddles, int *score){
     
     int next_x = ball->x + ball->left_ver_right;
@@ -162,8 +180,3 @@ void copy_paddles(paddle_position_t * a, paddle_position_t * b){
         a[i].length = b[i].length;
     }
 }
-
-/*
-paddle_position_t paddle;
-ball_position_t ball;
-*/
