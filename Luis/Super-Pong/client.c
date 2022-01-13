@@ -107,6 +107,7 @@ int main(int argc, char *argv[]){
                 if(key=='q'){
                     message.type = disconn;
                     sendto(sock_fd, &message, sizeof(message_t), 0, (struct sockaddr *) &server_addr, sizeof(server_addr));
+                    endwin();
                     exit(0);
                 }
                 else

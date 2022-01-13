@@ -38,16 +38,13 @@ int main(){
 	int nbytes;
 
 	while(1) {
-		printf("Waiting for message...\n");
 		nbytes = recvfrom(sock_fd, &in_msg, sizeof(in_msg), 0, (struct sockaddr *) &new_client_addr, &new_client_addr_size);
 		if(nbytes == sizeof(message_t) && check_message(in_msg)== 0){
-			printf("\tReceived message.\n");
 			switch(in_msg.type){
 				case conn:
 					// Add new client to list.
 					remote_port = ntohs(new_client_addr.sin_port);
 					inet_ntop(AF_INET, &new_client_addr.sin_addr, remote_addr, 12);
-					printf("\t%s %d\n", remote_addr, remote_port);
 					client_list = add_new_client(client_list, remote_addr, remote_port);
 					// If its the only client in our list, send send_ball message.
 					if(client_list->next == NULL){
@@ -57,7 +54,6 @@ int main(){
 						inet_pton(AF_INET, client_list->addr, &client_addr.sin_addr);
 						client_addr.sin_port = htons(client_list->port);
 						sendto(sock_fd, &out_msg, sizeof(out_msg), 0, (struct sockaddr*) &client_addr, sizeof(client_addr));
-						printf("Sent message of type Send_ball\n");
 					}
 					break;
 				case rls_ball:
@@ -84,7 +80,6 @@ int main(){
 					ptr1 = client_list;
 					while(ptr1 !=NULL ){
 						if(ptr1 != active_player){
-							printf("Sending Move_ball message\n");
 							inet_pton(AF_INET, ptr1->addr, &client_addr.sin_addr);
 							client_addr.sin_port = htons(ptr1->port);
 							out_msg.type = mv_ball;

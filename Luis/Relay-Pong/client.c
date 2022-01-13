@@ -126,6 +126,7 @@ int main(int argc, char *argv[]){
                     message.type = disconn;
                     sendto(sock_fd, &message, sizeof(message_t), 0, (struct sockaddr*) &server_addr, sizeof(server_addr));
                     // Quit
+                    endwin();
                     exit(0);
                 }
                 else{

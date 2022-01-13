@@ -59,8 +59,7 @@ int main(){
     place_ball_random(&ball);
 
     while (1) {
-        printf("Waiting for message...\n");
-		nbytes = recvfrom(sock_fd, &in_msg, sizeof(in_msg), 0, (struct sockaddr *) &new_client_addr, &new_client_addr_size);
+        nbytes = recvfrom(sock_fd, &in_msg, sizeof(in_msg), 0, (struct sockaddr *) &new_client_addr, &new_client_addr_size);
         if(nbytes==sizeof(message_t) && check_message(in_msg) == 0){
             switch(in_msg.type){
                 case conn:
@@ -68,7 +67,6 @@ int main(){
                         // Add new client to list.
                         remote_port = ntohs(new_client_addr.sin_port);
                         inet_ntop(AF_INET, &new_client_addr.sin_addr, remote_addr, 12);
-                        printf("\t%s %d\n", remote_addr, remote_port);
                         client_list = add_new_client(client_list, remote_addr, remote_port, score, paddles, &id, ball);
                         registered_players ++;
                     }
@@ -86,7 +84,6 @@ int main(){
                     else
                         out_msg.id = id;
                     sendto(sock_fd, &out_msg, sizeof(message_t), 0, (struct sockaddr *) &new_client_addr, sizeof(new_client_addr));
-                    printf("\tSent board_update message.\n");
                     break;
                 case disconn:
                     // Remove client from list.
