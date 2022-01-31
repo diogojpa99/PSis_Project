@@ -87,20 +87,22 @@ void *thread_socket(void *arg){
                         pthread_mutex_lock(&mx_active_player);
 						active_player = next_player(client_list);
 						pthread_mutex_unlock(&mx_active_player);
+
                     }
 					pthread_mutex_lock(&mx_client_list);
                     client_list = remove_client(client_list, remote_addr, remote_port);
 					pthread_mutex_unlock(&mx_client_list);
-					
+
 					if(active_player != NULL){
 						inet_pton(AF_INET, active_player->addr, &client_addr.sin_addr);
 						client_addr.sin_port = htons(active_player->port);
 						out_msg.type = snd_ball;
 						sendto(sock_fd, &out_msg, sizeof(message_t), 0, (struct sockaddr*) &client_addr, sizeof(client_addr));
-                        pthread_mutex_lock(&mx_t_last_snd);
+						pthread_mutex_lock(&mx_t_last_snd);
 						t_last_snd = time(NULL);
 						pthread_mutex_unlock(&mx_t_last_snd);
 					}
+
 					break;
 				default:
 					break;

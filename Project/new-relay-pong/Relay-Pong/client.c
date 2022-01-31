@@ -12,7 +12,7 @@
 pthread_mutex_t mutex_ball, mutex_paddle, mutex_my_win, mutex_message_win /* ,mutex_server_addr, mutex_state */; 
 pthread_t _thread_recv, _thread_ball;
 
-state currstate, nextstate;
+state_t state;
 ball_position_t ball;
 paddle_position_t paddle;
 struct sockaddr_in server_addr;
@@ -81,8 +81,10 @@ void *thread_recv(void * arg){
                 draw_ball(my_win, &ball, true);
                 pthread_mutex_unlock(&mutex_my_win);
 
-                // Call ball movement thread
-                pthread_create(&_thread_ball, NULL, thread_ball, &sock_fd);
+                // If it hasn't been called yet, call ball movement thread.
+                if(state == wait){
+                    pthread_create(&_thread_ball, NULL, thread_ball, &sock_fd);
+                }
 
                 // Create a new paddle.
                 // A new paddle is created each time the client gets the ball in order to make sure one doesn't land on top of the other.
@@ -100,7 +102,7 @@ void *thread_recv(void * arg){
                 mvwprintw(message_win, 2,1,"use arrow to control paddle");
                 wrefresh(message_win);
                 pthread_mutex_unlock(&mutex_message_win);
-                nextstate = play;
+                state = play;
             }else if(message.type == rls_ball){
                 // Delete paddle from the screen, stop ball movement and enter wait state
                 pthread_mutex_lock(&mutex_my_win);
@@ -122,7 +124,7 @@ void *thread_recv(void * arg){
                 wrefresh(my_win);
                 pthread_mutex_unlock(&mutex_my_win);
 
-                nextstate = wait;
+                state = wait;
             }
         }
     }
@@ -180,7 +182,7 @@ int main(int argc, char *argv[]){
     time_t t_snd_ball, t;
     int nbytes;
 
-    currstate = wait, nextstate = wait;
+    state = wait;
 
     while (1) {
         key = wgetch(my_win);
@@ -193,7 +195,7 @@ int main(int argc, char *argv[]){
             close(sock_fd);
             exit(0);
         }
-        switch(currstate){
+        switch(state){
             case wait:
                 break;
             case play:
@@ -212,6 +214,5 @@ int main(int argc, char *argv[]){
                 break;
         }
         // wrefresh(my_win);
-        currstate = nextstate;
     }
 }

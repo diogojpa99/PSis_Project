@@ -5,7 +5,7 @@
 
 typedef enum msg_type{conn, rls_ball, snd_ball, mv_ball, disconn} msg_type;
 
-typedef enum state{wait, play} state;
+typedef enum state_t{wait, play} state_t;
 
 typedef struct message_t{
     msg_type type;
