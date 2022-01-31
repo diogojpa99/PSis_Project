@@ -1,0 +1,32 @@
+    +----------------+
+    | New-Relay-Pong |
+    +----------------+
+
+    Datagram Sockets;
+    Server decides when to pass the ball (every 10 s).
+
+    Threads:
+        Client:
+            Keyboard --main()??
+            Recv
+            Ball
+                sleep(1); move_ball();
+                stopped when in WAIT state. -- pthread_cancel()?? stop condition??
+
+            (main)
+
+            TO DO : mutexes
+            
+        Server:
+            Socket; -- Datagram => unique socket
+            Time (release ball);
+            (main)
+
+                Time            main??
+                seconds++       if(seconds%10 == 0){next_client}
+
+                - Wait before sending send_ball?
+
+                TO DO : List Functions and RW locks
+
+    
