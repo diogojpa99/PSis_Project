@@ -27,6 +27,7 @@
 
                 - Wait before sending send_ball?
 
-                TO DO : List Functions and RW locks
+                TO DO : RW locks
+                        Ball Position
 
     

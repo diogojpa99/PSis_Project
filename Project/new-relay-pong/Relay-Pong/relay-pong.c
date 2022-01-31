@@ -1,7 +1,10 @@
 #include "stdlib.h"
 #include "string.h"
-
+#include <pthread.h>
 #include "relay-pong.h"
+
+client *active_player;
+pthread_mutex_t mx_client_list, mx_t_last_snd, mx_t_curr, mx_active_player;
 
 /*
     This function adds a new entry to the server's list of clients.
@@ -29,6 +32,48 @@ client *add_new_client( client *list, char *addr, int port){
     p->next = new;
     return list;
 
+}
+
+/*
+    This function removes a client from the list
+*/
+client *remove_client( client *list, char *addr, int port ){
+    client *ptr1=list, *ptr2;
+
+    // If the client we need to remove is the first in the list
+    if( strcmp( list->addr, addr)==0 && list->port == port ){
+        // Free client and return the new head
+        ptr1 = list->next;
+        free(list);
+        return ptr1;
+    }
+    else{
+        // Search the list
+        while( ptr1!=NULL && ( strcmp(ptr1->addr, addr)!=0 || ptr1->port != port ) ){
+            ptr2=ptr1;
+            ptr1=ptr1->next;
+        }
+        if(ptr1 != NULL){
+            ptr2->next = ptr1->next;
+            free(ptr1);
+            return list;
+        }
+        else
+            return list;
+    }
+}
+
+/*
+    This function chooses the next active player.
+*/
+client *next_player(client *list){
+    if(active_player == NULL){
+        return list;
+    }
+    if(active_player->next == NULL)
+        return list;
+    else
+        return active_player->next;
 }
 
 /*

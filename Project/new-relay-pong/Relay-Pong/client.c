@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <time.h>
 
 #include "relay-pong.h"
 
@@ -10,7 +9,7 @@
 #include<sys/socket.h>
 #include <unistd.h>
 
-pthread_mutex_t mutex_ball, mutex_paddle, mutex_my_win, mutex_message_win /* ,mutex_server_addr */; 
+pthread_mutex_t mutex_ball, mutex_paddle, mutex_my_win, mutex_message_win /* ,mutex_server_addr, mutex_state */; 
 pthread_t _thread_recv, _thread_ball;
 
 state currstate, nextstate;
@@ -106,7 +105,10 @@ void *thread_recv(void * arg){
                 // Delete paddle from the screen, stop ball movement and enter wait state
                 pthread_mutex_lock(&mutex_my_win);
                 draw_paddle(my_win, &paddle, false);
-                pthread_mutex_lock(&mutex_my_win);
+                pthread_mutex_unlock(&mutex_my_win);
+
+                // Kill ball movement thread.
+                pthread_cancel(_thread_ball);
 
                 // Clear message_win.
                 pthread_mutex_lock(&mutex_message_win);
@@ -114,8 +116,12 @@ void *thread_recv(void * arg){
                 mvwprintw(message_win, 2,1,"                           ");
                 wrefresh(message_win);
                 pthread_mutex_unlock(&mutex_message_win);
+                // Delete paddle from the screen.
+                pthread_mutex_lock(&mutex_my_win);
+                draw_paddle(my_win, &paddle, false);
+                wrefresh(my_win);
+                pthread_mutex_unlock(&mutex_my_win);
 
-                pthread_cancel(_thread_ball);
                 nextstate = wait;
             }
         }
