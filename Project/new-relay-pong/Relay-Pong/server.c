@@ -18,9 +18,9 @@ void *thread_socket(void *arg){
     int sock_fd = *(int*) arg, remote_port, nbytes;
     struct sockaddr_in new_client_addr, client_addr;
     socklen_t new_client_addr_size = sizeof(struct sockaddr_in);
-    char remote_addr[12];
+    char remote_addr[16];
     message_t in_msg, out_msg;
-    client *ptr1;
+    client *ptr1 = NULL;
     	
     client_addr.sin_family = AF_INET;
     
