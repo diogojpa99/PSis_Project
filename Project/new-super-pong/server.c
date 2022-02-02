@@ -71,6 +71,24 @@ void *thread_client(void* arg){
                 paddles[id].x = paddles[id].y = -1;
             }
 
+            // Send board update.
+            out_msg.type = board_update;
+            copy_ball(&out_msg.ball_pos, &ball);
+            for(int i=0; i<MAX_CLIENTS; i++){                    
+                out_msg.score[i] = score[i];
+            }
+            copy_paddles(out_msg.paddle_pos, paddles);
+            
+            pthread_mutex_lock(&mx_client_list);
+            ptr1 = client_list;
+            while(ptr1 != NULL){
+                out_msg.id = ptr1->id;
+                send(ptr1->fd, &out_msg, sizeof(message_t), 0);
+                printf("\t\tsent to fd = %d\n", ptr1->fd);
+                ptr1 = ptr1->next;
+            }
+            pthread_mutex_unlock(&mx_client_list);
+
             // Close file descriptor
             close(sock_fd);
 

@@ -1,6 +1,6 @@
 #include "pong.h"
 
-#define SOCK_PORT 6001
+#define SOCK_PORT 6000
 
 typedef enum msg_type{paddle_move, board_update} msg_type;
 
