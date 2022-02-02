@@ -1,0 +1,15 @@
+    +---------------+
+    | Super Pong    |
+    +---------------+
+
+    Client:
+        Threads:
+            - thread_recv
+            - thread_kb (main)
+
+    Server:
+        Threads:
+            - thread_accept
+            - thread_socket (one per client, max.: 10)
+            - thread_ball
+            - ...?
