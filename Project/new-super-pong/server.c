@@ -106,6 +106,7 @@ void *thread_accept(void *arg){
     socklen_t new_client_addrlen;
     message_t out_msg, in_msg;
     pthread_t _thread_client;
+    client * ptr1;
 
     new_client_addr.sin_family = AF_INET;
 
@@ -124,26 +125,43 @@ void *thread_accept(void *arg){
                 pthread_mutex_unlock(&mx_score);
                 registered_players ++;
                 out_msg.id = id;
+
+                // Send board update.
+                out_msg.type = board_update;
+                copy_ball(&out_msg.ball_pos, &ball);
+                for(int i=0; i<MAX_CLIENTS; i++){                    
+                    out_msg.score[i] = score[i];
+                }
+                copy_paddles(out_msg.paddle_pos, paddles);
+                
+                pthread_mutex_lock(&mx_client_list);
+                ptr1 = client_list;
+                while(ptr1 != NULL){
+                    out_msg.id = ptr1->id;
+                    send(ptr1->fd, &out_msg, sizeof(message_t), 0);
+                    printf("\t\tsent to fd = %d\n", ptr1->fd);
+                    ptr1 = ptr1->next;
+                }
+                pthread_mutex_unlock(&mx_client_list);
+
                 // Call client thread
                 pthread_create(&_thread_client, NULL, thread_client, &newfd);
+            }else{
+                // Send board update.
+                out_msg.type = board_update;
+                copy_ball(&out_msg.ball_pos, &ball);
+                for(int i=0; i<MAX_CLIENTS; i++){                    
+                    out_msg.score[i] = score[i];
+                }
+                copy_paddles(out_msg.paddle_pos, paddles);
+                out_msg.type = board_update;
+                copy_ball(&out_msg.ball_pos, &ball);
+                for(int i=0; i<MAX_CLIENTS; i++){                    
+                    out_msg.score[i] = score[i];
+                    out_msg.id=-1;
+                    registered_players--;
+                }
             }
-            // Send board update.
-            out_msg.type = board_update;
-            copy_ball(&out_msg.ball_pos, &ball);
-            for(int i=0; i<MAX_CLIENTS; i++){                    
-                out_msg.score[i] = score[i];
-            }
-            copy_paddles(out_msg.paddle_pos, paddles);
-            if(registered_players > MAX_CLIENTS){
-                out_msg.id=-1;
-                registered_players--;
-            }
-            else
-                out_msg.id = id;
-
-            //send(newfd, &out_msg, sizeof(message_t), 0);
-            send(client_list->fd, &out_msg, sizeof(message_t), 0);
-            printf("Accept: newfd = %d\n", newfd);
         }
     }
 
